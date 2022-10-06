@@ -188,6 +188,83 @@ ifeq ($(config-targets),1)
 else
     # 到这里当前的编译目标一定不是xxx_config(否则前面的流程就结束了)
 
+PHONY += scripts
+#vmxian-dirs也依赖于第二个目标scripts，它会编译接下来的几个程序：filealias，mk_elfconfig，modpost等等。
+scripts: scripts_basic include/config/auto.conf 
+	$(Q)$(MAKE) $(build)=$(@)
+
+# Objects we will link into xian / subdirs we need to visit
+# 这里是需要连接到xian的目录的变量
+#init-y		:= init/
+
+## 此时如果需要使用.config的话，则直接包含auto.conf,将内核的CONFIG配置引入到Makefile的配置中
+# include了auto.conf后，内核的配置项变为了Makefile中的变量，
+#此后的Makefile中可以直接使用CONFIG_XXX来判断内核配置是否开启了.
+ifeq ($(dot-config),1)
+    # Read in config
+    -include include/config/auto.conf
+
+    # Read in dependencies to all Kconfig* files, make sure to run
+    # oldconfig if changes are detected.
+    -include include/config/auto.conf.cmd
+
+    # To avoid any implicit rule to kick in, define an empty command
+    $(KCONFIG_CONFIG) include/config/auto.conf.cmd: ;
+
+    # If .config is newer than include/config/auto.conf, someone tinkered
+    # with it and forgot to run make oldconfig.
+    # if auto.conf.cmd is missing then we are probably in a cleaned tree so
+    # we execute the config step to be sure to catch updated Kconfig files
+    include/config/%.conf: $(KCONFIG_CONFIG) include/config/auto.conf.cmd
+	    $(Q)$(MAKE) -f $(srctree)/Makefile syncconfig
+
+else
+    # Dummy target needed, because used as prerequisite
+    include/config/auto.conf: ;
+endif # $(dot-config)
+
+all: xian
+
+include $(srctree)/arch/$(SRCARCH)/Makefile
+
+# Default kernel image to build when no specific target is given.
+# KBUILD_IMAGE may be overruled on the command line or
+# set in the environment
+# Also any assignments in arch/$(ARCH)/Makefile take precedence over
+# this default value
+export KBUILD_IMAGE ?= vmxian
+
+## 这里过滤掉所有目录字符串尾部的/,也就是说vmxian-dirs全是目录名，但没有 /结尾
+
+vmxian-dirs	:= $(patsubst %/,%,$(filter %/, $(init-y)))
+
+## 将所有的目录%/都替换为 %/built-in.o
+init-y		:= $(patsubst %/, %/built-in.o, $(init-y))
+
+vmxian-init := $(init-y)
+
+
+xian: $(vmxian-init)
+
+#编译各个目录
+$(sort $(vmxian-init) ) : $(vmxian-dirs) 
+
+PHONY += $(vmxian-dirs)
+#就像我们看到的，vmxian-dirs依赖于两部分：prepare和scripts。
+## 这里的make展开如 make build := -f $(srctree)/scripts/Makefile.build obj=init 
+## 每一个子目录名都要执行一次此make
+$(vmxian-dirs): prepare
+	$(Q)$(MAKE) $(build)=$@
+
+PHONY += prepare
+
+prepare1: include/config/auto.conf
+
+archprepare: prepare1 scripts_basic
+
+# All the preparing..
+prepare: prepare0
+
 ###
 # Cleaning is done on three levels.
 # make clean     Delete most generated files
