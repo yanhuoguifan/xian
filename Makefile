@@ -102,6 +102,28 @@ export KBUILD_USERCFLAGS := -Wall -Wmissing-prototypes -Wstrict-prototypes \
 			      -O2 -fomit-frame-pointer -std=gnu89
 export KBUILD_USERLDFLAGS :=
 
+KBUILD_HOSTCFLAGS   := $(KBUILD_USERCFLAGS) $(HOST_LFS_CFLAGS) $(HOSTCFLAGS)
+KBUILD_HOSTCXXFLAGS := -Wall -O2 $(HOST_LFS_CFLAGS) $(HOSTCXXFLAGS)
+KBUILD_HOSTLDFLAGS  := $(HOST_LFS_LDFLAGS) $(HOSTLDFLAGS)
+KBUILD_HOSTLDLIBS   := $(HOST_LFS_LIBS) $(HOSTLDLIBS)
+
+# Make variables (CC, etc...)
+CPP		= $(CC) -E
+ifneq ($(LLVM),)
+CC		= clang
+LD		= ld.lld
+else
+CC		= $(CROSS_COMPILE)gcc
+LD		= $(CROSS_COMPILE)ld
+endif
+AS		= $(CROSS_COMPILE)as
+
+# Use XIANINCLUDE when you must reference the include/ directory.
+# Needed to be compatible with the O= option
+#XIANINCLUDE。他们包含了头文件的路径
+XIANINCLUDE    := -I$(srctree)/arch/$(hdr-arch)/include -Iinclude \
+                   -include include/generated/autoconf.h
+
 KBUILD_CPPFLAGS := -D__KERNEL__
 #-Wall	生成所有警告信息。
 KBUILD_AFLAGS   := -D__ASSEMBLY__ -fno-PIE
@@ -112,17 +134,12 @@ KBUILD_CFLAGS   := -Wall -Wundef -Werror=strict-prototypes -Wno-trigraphs \
 		   -std=gnu89
 KBUILD_LDFLAGS :=
 
-KBUILD_HOSTCFLAGS   := $(KBUILD_USERCFLAGS) $(HOST_LFS_CFLAGS) $(HOSTCFLAGS)
-KBUILD_HOSTCXXFLAGS := -Wall -O2 $(HOST_LFS_CFLAGS) $(HOSTCXXFLAGS)
-KBUILD_HOSTLDFLAGS  := $(HOST_LFS_LDFLAGS) $(HOSTLDFLAGS)
-KBUILD_HOSTLDLIBS   := $(HOST_LFS_LIBS) $(HOSTLDLIBS)
-
-export ARCH SRCARCH CONFIG_SHELL HOSTCC KBUILD_HOSTCFLAGS HOSTCFLAGS
-export CPP AR NM STRIP OBJCOPY OBJDUMP
+export ARCH SRCARCH CONFIG_SHELL HOSTCC KBUILD_HOSTCFLAGS HOSTCFLAGS AS LD CC
+export CPP 
 export HOSTCXX HOSTCXXFLAGS 
 
-export KBUILD_CPPFLAGS NOSTDINC_FLAGS LINUXINCLUDE OBJCOPYFLAGS LDFLAGS KBUILD_LDFLAGS
-export KBUILD_CFLAGS CFLAGS_GCOV
+export KBUILD_CPPFLAGS NOSTDINC_FLAGS XIANINCLUDE LDFLAGS KBUILD_LDFLAGS
+export KBUILD_CFLAGS
 export KBUILD_AFLAGS 
 
 # Basic helpers built in scripts/
