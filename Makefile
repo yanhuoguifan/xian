@@ -49,6 +49,9 @@ ifeq ($(ARCH),x86_64)
         SRCARCH := x86
 endif
 
+# Where to locate arch specific headers
+hdr-arch  := $(SRCARCH)
+
 KCONFIG_CONFIG	?= .config
 export KCONFIG_CONFIG
 
@@ -323,6 +326,7 @@ clean: $(clean-dirs)
     $(no-clean-dir) \
 		\( -name '*.[aios]' -o -name '*.ko' -o -name '.*.cmd' \
 		-o -name '*.ko.*' \
+		-o -name '*.elf' \
 		-o -name '*.dtb' -o -name '*.dtb.S' -o -name '*.dt.yaml' \
 		-o -name '*.dwo' -o -name '*.lst' \
 		-o -name '*.su' -o -name '*.mod' \

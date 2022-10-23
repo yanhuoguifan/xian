@@ -1,0 +1,109 @@
+# Convenient variables
+squote  := '
+
+###
+# Name of target with a '.' as filename prefix. foo/bar.o => foo/.bar.o
+dot-target = $(dir $@).$(notdir $@)
+
+###
+# The temporary file to save gcc -MD generated dependencies must not
+# contain a comma
+depfile = $(subst $(comma),_,$(dot-target).d)
+
+
+###
+# Shorthand for $(Q)$(MAKE) -f scripts/Makefile.build obj=
+# Usage:
+# $(Q)$(MAKE) $(build)=dir
+build := -f $(if $(KBUILD_SRC),$(srctree)/)scripts/Makefile.build obj
+
+
+# Prefix -I with $(srctree) if it is not an absolute path.
+# skip if -I has no parameter
+addtree = $(if $(patsubst -I%,%,$(1)), \
+$(if $(filter-out -I/%,$(1)),$(patsubst -I%,-I$(srctree)/%,$(1))) $(1))
+
+# Find all -I options and call addtree
+flags = $(foreach o,$($(1)),$(if $(filter -I%,$(o)),$(call addtree,$(o)),$(o)))
+
+# filename of target with directory and extension stripped
+basetarget = $(basename $(notdir $@))
+
+###
+# Escape single quote for use in echo statements
+escsq = $(subst $(squote),'\$(squote)',$1)
+
+###
+# Shorthand for $(Q)$(MAKE) -f scripts/Makefile.clean obj=
+# Usage:
+# $(Q)$(MAKE) $(clean)=dir
+clean := -f $(srctree)/scripts/Makefile.clean obj
+
+# echo command.
+# Short version is used, if $(quiet) equals `quiet_', otherwise full one.
+echo-cmd = $(if $($(quiet)cmd_$(1)),\
+	echo '  $(call escsq,$($(quiet)cmd_$(1)))$(echo-why)';)
+
+# printing commands
+#故所有的 $(call cmd, xxx) 实际上最终都是变量 cmd_xxx的展开
+cmd = @$(echo-cmd) $(cmd_$(1))
+
+#在 arg-check 中，$(1) 表示第 1 个参数，
+#比如上面的 $(call if_changed_rule,cc_o_c) 中，$(1) 就是 cc_o_c ，
+#所以 $(cmd_$(1) 就是表示 cmd_cc_o_c
+#$@ 表示目标文件，从上面叙述可知，它就是 $(obj)/%.o 。
+#比如编译 init/main.o ，那么 $(cmd_$@) 就是表示 $(cmd_init/main.o)，
+#而在 init/.main.o.cmd 文件中我们看到了 cmd_init/main.o 用来保存着上次编译的参数。
+#在 arg-check 中，首先使用 $(filter-out $(cmd_$(1)), $(cmd_$@)) 将上一次的编译参数中过略掉本次要编译的参数，
+#再用 $(filter-out $(cmd_$@),   $(cmd_$(1))) 将本次的编译参数中过滤掉上一次的编译参数。
+#正反过滤的原因是，filter-out 函数在过滤时，如果第 2 个参数是第 1 个参数的子集或者是相同，那么返回空；
+#所以，在第 1 次过滤时如果返回为空，那么 cmd_$@ 可能是等于 cmd_$(1) 的，
+#也可能是它的子集，所以只有当再次反过来做过滤时发现返回为空，那么才能判断两次编译的参数是相等的，
+#否则是不等的。如果返回结果不为空，说明编译参数发生了变化，那么就会执行 $(rule_cc_o_c) 。
+
+ifneq ($(KBUILD_NOCMDDEP),1)
+# Check if both arguments has same arguments. Result is empty string if equal.
+# User may override this check using make KBUILD_NOCMDDEP=1
+arg-check = $(strip $(filter-out $(cmd_$(1)), $(cmd_$@)) \
+                    $(filter-out $(cmd_$@),   $(cmd_$(1))) )
+endif
+
+# >'< substitution is for echo to work,
+# >$< substitution to preserve $ when reloading .cmd file
+# note: when using inline perl scripts [perl -e '...$$t=1;...']
+# in $(cmd_xxx) double $$ your perl vars
+make-cmd = $(subst \#,\\\#,$(subst $$,$$$$,$(call escsq,$(cmd_$(1)))))
+
+# $? 表示所有比目标还要新的依赖文件；$^ 表示所有的依赖文件。
+#在 any-prereq 中，首先使用 $(filter-out $(PHONY),$?) 将 $? 中的所有伪目标去掉，
+#不然可能会将 FORCE 这种目标也带进来，如果此时返回非空，那么说明有比目标还要新的依赖文件。
+#$(wildcard $^) 匹配当前目录下的所有依赖文件(已经存在的)，
+#然后再使用 $(filter-out $(PHONY) $(wildcard $^),$^) 
+#将伪目标以及当前目录下匹配的文件列表从整个 $^ 列表中删除，如果返回不为空，那么说明某些依赖文件不存在，
+#也就是说这些不存在的依赖文件还没生成 -- 这是因为某些依赖文件需要在编译时才会生成。
+
+# Find any prerequisites that is newer than target or that does not exist.
+# PHONY targets skipped in both cases.
+any-prereq = $(filter-out $(PHONY),$?) $(filter-out $(PHONY) $(wildcard $^),$^)
+
+#暂时让if_changed_rule和if_changed_dep相等
+
+if_changed = $(if $(strip $(any-prereq) $(arg-check)),                       \
+	@set -e;                                                             \
+	$(echo-cmd) $(cmd_$(1));                                             \
+	echo 'cmd_$@ := $(make-cmd)' > $(dot-target).cmd)
+
+#if_changed 函数在当发现规则的依赖有更新，或者是对应目标的命令行参数发生改变时
+#($(strip $(any-prereq) $(arg-check)) 语句结果不为空)，执行后面的语句。
+#set -e 表示如果命令执行有错那么命令停止执行并退出。
+#接着 $(echo-cmd) 用来打印出相关的编译命令，接着执行 $(cmd_$(1) 里的命令。
+#最后 echo 'cmd_$@ := $(make-cmd)' > $(dot-target).cmd 将上面执行的命令写入一个叫 $(dot-target).cmd 的文件中，该文件为隐藏文件，在编译后的内核源码目录及其子目录下随处可见，比如在 init/ 下可以看到 .initramfs.o.cmd， .version.o.cmd 等等。
+# Execute the command and also postprocess generated .d dependencies file.
+if_changed_dep = $(if $(strip $(any-prereq) $(arg-check) ),                  \
+	@set -e;                                                             \
+	$(echo-cmd) $(cmd_$(1));                                             \
+	scripts/basic/fixdep $(depfile) $@ '$(make-cmd)' > $(dot-target).tmp;\
+	rm -f $(depfile);                                                    \
+	mv -f $(dot-target).tmp $(dot-target).cmd)
+
+if_changed_rule = $(if_changed)
