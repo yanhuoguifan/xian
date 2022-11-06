@@ -13,12 +13,11 @@ SECTIONS
 	.text :
 	{
 		*(.text)
-	  	. = ALIGN(32);
+	  	. = ALIGN(64);
 	}
 	.entrytext :
 	{
-		*(.entrytext)
-	  	. = ALIGN(4096);
+		*(.entrytext);
 	}
 
 }

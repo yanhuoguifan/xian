@@ -7,15 +7,13 @@ format_fs(){
 	if [ ! -d "${img_mount_path}" ]; 
 	then
 		mkdir "${img_mount_path}"
-	else
-		sudo umount "${img_mount_path}"
 	fi
 
 	if [ ! -e "${img_path}" ]; 
 	then
 		dd if=/dev/zero of="${img_path}" bs=1k count=8k
 	else
-		mount -t ext2 "${img_path}" "${img_mount_path}"
+		sudo mount -t ext2 "${img_path}" "${img_mount_path}"
 		exist_fs=$?
 		if [ "${exist_fs}" -eq 1 ]
 		then
@@ -47,9 +45,17 @@ cp_kernel(){
 	sudo cp "arch/x86/boot/grub/grub.cfg" "${img_mount_path}/boot/grub/grub.cfg"
 }
 
+convert_img(){
+	#因为挂载的文件无法被使用，先卸载，转成qcow2文件后再挂载
+	sudo umount "${img_mount_path}"
+	qemu-img convert -f raw -O qcow2 "${img_path}" "${img_path}.qcow2"
+	sudo mount -o loop "${img_path}" "${img_mount_path}"
+}
+
 install_kernel(){
 	format_fs
 	cp_kernel
+	convert_img
 }
 
 install_kernel 

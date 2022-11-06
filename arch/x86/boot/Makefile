@@ -19,8 +19,12 @@ $(obj)/bzImage: $(obj)/setup.elf FORCE
 
 .PHONY : $(obj)/install
 $(obj)/install: 
-	$(shell $(obj)/grub/grub_env.sh img $(obj)/setup.elf hdisk)
+	$(shell $(obj)/grub/grub_env.sh xian $(obj)/setup.elf hdisk)
 
 .PHONY : $(obj)/clean
 $(obj)/clean:
-	$(shell $(obj)/grub/clean_grub_env.sh img hdisk)
+	$(shell $(obj)/grub/clean_grub_env.sh xian hdisk)
+
+.PHONY : $(obj)/debug
+$(obj)/debug: 
+	$(shell $(obj)/gdb/debug.sh xian $(obj)/gdb/xian.gdb)

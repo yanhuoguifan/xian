@@ -8,6 +8,11 @@ then
     rm -rf "${img_mount_path}"
 fi
 
+if [ -e "${img_path}.qcow2" ]
+then
+    rm "${img_path}.qcow2"
+fi
+
 if [ -e "${img_path}" ]
 then
     rm "${img_path}"

@@ -23,7 +23,7 @@ _start:
 	jmp start_entry
 
 /* Align 64 bits boundary. */
-	.align 8
+	.align 4
 #ifdef CONFIG_MULTIBOOT2
 
 	/* Multiboot header. */
@@ -37,10 +37,10 @@ multiboot_header:
 	/* checksum */
 	.long -(MULTIBOOT2_HEADER_MAGIC + MULTIBOOT_ARCHITECTURE_I386 + (multiboot_header_end - multiboot_header))
 
-	.align 8
+	.align 4
 	.short MULTIBOOT_HEADER_TAG_END
 	.short 0
-	.long 8
+	.long 4
 
     multiboot_header_end:
 

@@ -38,11 +38,14 @@ all: bzImage
 # KBUILD_IMAGE specify target image being built
 KBUILD_IMAGE := $(boot)/bzImage
 
-# KBUILD_IMAGE specify target image being built
+
 INSTALL_IMAGE := $(boot)/install
 
-# KBUILD_IMAGE specify target image being built
+
 CLEAN_IMAGE := $(boot)/clean
+
+
+DUBUG_XIAN := $(boot)/debug
 
 bzImage: xian
 	$(Q)$(MAKE) $(build)=$(boot) $(KBUILD_IMAGE)
@@ -53,3 +56,6 @@ install: bzImage
 distclean: clean_install
 clean_install: 
 	$(Q)$(MAKE) $(build)=$(boot) $(CLEAN_IMAGE)
+
+debug: install
+	$(Q)$(MAKE) $(build)=$(boot) $(DUBUG_XIAN)
