@@ -17,7 +17,7 @@
 
 #include <asm/multiboot.h>
 
-    .section ".text.grub"
+    .section ".text.header"
 	.global _start
 _start:
 	jmp start_entry
@@ -56,7 +56,7 @@ multiboot_header:
 multiboot_header_end:
 
 #endif
-    .section ".entrytext"
+    .section ".text.entry"
 start_entry:
 
     loop:   hlt

@@ -10,14 +10,7 @@ ENTRY(_start)
 SECTIONS
 {
 	. = 0x100000;
-	.text :
-	{
-		*(.text)
-	  	. = ALIGN(64);
-	}
-	.entrytext :
-	{
-		*(.entrytext);
-	}
-
+	.text.header		: { *(.text.header) }
+	.text.entry			: { *(.text.entry) }
+	
 }

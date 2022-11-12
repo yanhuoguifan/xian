@@ -13,7 +13,7 @@ then
     rm "${img_path}.qcow2"
 fi
 
-if [ -e "${img_path}" ]
+if [ -e "${img_path}.raw" ]
 then
-    rm "${img_path}"
+    rm "${img_path}.raw"
 fi
