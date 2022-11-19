@@ -1,7 +1,7 @@
 #targets用于读cmd文件
 targets		:= setup.elf bzImage
 
-setup-y		+= header.o
+setup-y		+= header.o main.o
 
 targets += $(setup-y)
 

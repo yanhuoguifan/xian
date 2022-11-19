@@ -12,5 +12,14 @@ SECTIONS
 	. = 0x100000;
 	.text.header		: { *(.text.header) }
 	.text.entry			: { *(.text.entry) }
-	
+
+	.data.init          : { *(.data.init) }
+
+	. = ALIGN(16);
+	_end = .;
+	/*
+ 	* _end is used for stack
+	* There are 2>>9 size space
+ 	*/
+	. = ALIGN(9);
 }
