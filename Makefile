@@ -121,6 +121,8 @@ LD		= $(CROSS_COMPILE)ld
 endif
 AS		= $(CROSS_COMPILE)as
 
+NOSTDINC_FLAGS :=
+
 # Use XIANINCLUDE when you must reference the include/ directory.
 # Needed to be compatible with the O= option
 #XIANINCLUDE。他们包含了头文件的路径
@@ -246,6 +248,8 @@ endif # $(dot-config)
 all: xian
 
 include $(srctree)/arch/$(SRCARCH)/Makefile
+
+NOSTDINC_FLAGS += -nostdinc -isystem $(shell $(CC) -print-file-name=include)
 
 # Default kernel image to build when no specific target is given.
 # KBUILD_IMAGE may be overruled on the command line or

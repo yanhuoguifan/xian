@@ -18,8 +18,8 @@
 #include <asm/multiboot.h>
 #include "boot.h"
 
-	//似乎必须把头放到text段中，不然qemu或grub无法识别
-    .section ".text.header"
+	//multiboot_header必须放在可写的段中，不然qemu或grub无法识别
+    .section ".header", "a"
 	.global _start
 _start:
 	jmp start_entry
@@ -59,30 +59,28 @@ multiboot_header_end:
 
 #endif
 
-    .section ".data.init"
 	.globl	hdr
 hdr:
 multiboot_addr:	.long 0			/* Filled in by header.S */
 multiboot_magic:	.long 0     /* Filled in by header.S */
 heap_end_ptr:	.long	_end+STACK_SIZE-512
 
-    .section ".text.entry"
+    .section ".entrytext", "ax"
 start_entry:
+
 	cli  				//此时还没有设置好保护模式的中断处理，所以必须关闭中断
+                       //先保存multiboot的魔数和信息地址
+	movl	%ebx, multiboot_addr
+	movl	%eax, multiboot_magic
 	
+	                  //配置内核初始化栈
 	movl	heap_end_ptr, %edx
 	addl	$STACK_SIZE, %edx
 	movl	%edx, %esp
 	movl	%edx, %ebp
-	sti			# Now we should have a working stack
 
 	calll main
 
 stop:
 	hlt 			 //停机指令，什么也不做，可以降低 CPU 功耗
 	jmp stop 		 //到这里结束，关机什么的后面再说
-
-    .section ".data.init"
-	.globl	hdr
-halt_message:
-        .asciz  "Halted."

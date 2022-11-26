@@ -27,7 +27,8 @@ KBUILD_LDFLAGS := -m elf_$(UTS_MACHINE)
 
 REALMODE_CFLAGS	:= -m32 -g -Os -DDISABLE_BRANCH_PROFILING \
 		   -Wall -Wstrict-prototypes -march=i386 -mregparm=3 \
-
+           -fno-strict-aliasing -fomit-frame-pointer -fno-pic -mno-mmx -mno-sse -fcf-protection=none -ffreestanding -fno-stack-protector -Wno-address-of-packed-member  \
+#第三行需要尝试
 export REALMODE_CFLAGS
 
 boot := arch/x86/boot

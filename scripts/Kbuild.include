@@ -106,4 +106,4 @@ if_changed_dep = $(if $(strip $(any-prereq) $(arg-check) ),                  \
 	rm -f $(depfile);                                                    \
 	mv -f $(dot-target).tmp $(dot-target).cmd)
 
-if_changed_rule = $(if_changed)
+if_changed_rule = $(if_changed_dep)
