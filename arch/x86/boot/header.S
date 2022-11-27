@@ -15,7 +15,6 @@
 * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <asm/multiboot.h>
 #include "boot.h"
 
 	//multiboot_header必须放在可写的段中，不然qemu或grub无法识别

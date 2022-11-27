@@ -1,7 +1,10 @@
 #targets用于读cmd文件
 targets		:= setup.elf bzImage
 
-setup-y		+= header.o main.o copy.o
+setup-y		+= header.o main.o copy.o printf.o
+
+setup-$(CONFIG_MULTIBOOT2) += multiboot2_parse.o
+setup-$(CONFIG_MULTIBOOT1) += multiboot_parse.o
 
 targets += $(setup-y)
 

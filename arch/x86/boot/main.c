@@ -7,8 +7,14 @@ static void copy_boot_params(void){
     memcpy(&boot_params.hdr, &hdr, sizeof hdr);
 }
 
-int main(void){
+void main(void){
 
     copy_boot_params();
     /* First, copy the boot header into the "zeropage" */
+
+
+    if (multiboot_save() != 0) {
+        return;
+    }
+    
 }
