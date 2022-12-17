@@ -1,9 +1,10 @@
 #include "boot.h"
 
+struct multiboot_tag_mmap *multiboot_tag_mmap;
+
 int multiboot_save () {
 	struct multiboot_tag *tag;
-	unsigned size;
-
+    
     if (boot_params.hdr.multiboot_magic != MULTIBOOT2_BOOTLOADER_MAGIC) {
         printf ("Invalid magic number: 0x%x\n", (unsigned) boot_params.hdr.multiboot_magic);
         return -1;
@@ -14,13 +15,12 @@ int multiboot_save () {
         return -1;
     }
 
-    size = *(unsigned *)boot_params.hdr.multiboot_addr;
-	printf("Announced mbi size 0x%x\n", size);
-
+    
 	for (tag = (struct multiboot_tag *)(boot_params.hdr.multiboot_addr + 8);
 		tag->type != MULTIBOOT_TAG_TYPE_END;
 		tag = (struct multiboot_tag *)((multiboot_uint8_t *)tag + ((tag->size + 7) & ~7))) {
         printf ("Tag 0x%x, Size 0x%x\n", tag->type, tag->size);
+        //下面的switch会触发bug
         switch (tag->type) {
         case MULTIBOOT_TAG_TYPE_CMDLINE:
             printf ("Command line = %s\n",
@@ -47,11 +47,12 @@ int multiboot_save () {
                 ((struct multiboot_tag_bootdev *) tag)->slice,
                 ((struct multiboot_tag_bootdev *) tag)->part);
             break;
+        
+        //可寻址的物理内存空间，需要保存
         case MULTIBOOT_TAG_TYPE_MMAP: {
             multiboot_memory_map_t *mmap;
-
+            multiboot_tag_mmap = (struct multiboot_tag_mmap *) tag;
             printf ("mmap\n");
-      
             for (mmap = ((struct multiboot_tag_mmap *) tag)->entries;
                 (multiboot_uint8_t *) mmap 
                 < (multiboot_uint8_t *) tag + tag->size;

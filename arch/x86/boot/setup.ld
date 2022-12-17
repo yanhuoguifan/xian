@@ -10,15 +10,27 @@ ENTRY(_start)
 SECTIONS
 {
 	. = 0x100000;
-	.header				: { *(.header) }
-	.entrytext          : { *(.entrytext) }
+	.header		: { *(.header) }
+	.entrytext  : { *(.entrytext) }
+	.inittext	: { *(.inittext) }
 
 	. = ALIGN(16);
 	
-	.text				: { *(.text) }
+	.text		: { *(.text) }
 
+	.rodata		: { *(.rodata*) }
+	
 	. = ALIGN(16);
 	.data		: { *(.data*) }
+
+	. = ALIGN(16);
+	.bss		:
+	{
+		__bss_start = .;
+		*(.bss)
+		__bss_end = .;
+	}
+
 	. = ALIGN(16);
 	_end = .;
 	/*

@@ -80,6 +80,11 @@ start_entry:
 
 	calll main
 
-stop:
-	hlt 			 //停机指令，什么也不做，可以降低 CPU 功耗
-	jmp stop 		 //到这里结束，关机什么的后面再说
+	.globl	die
+	.type	die, @function
+die:
+	hlt             //停机指令，什么也不做，可以降低 CPU 功耗
+	jmp	die         //到这里结束，关机什么的后面再说
+
+	.size	die, .-die
+

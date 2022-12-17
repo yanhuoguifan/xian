@@ -9,6 +9,6 @@ sh_dir(){
 }
 
 ##当需要进入qemu monitor的时候，连接tcp的localhost:6666，比如nc localhost 6666
-
-qemu-system-x86_64 -m 2048 -hda xian.qcow2  -monitor tcp:localhost:6666,server,nowait -s -S & 
+#内存以mb为单位
+qemu-system-x86_64 -m 512 -hda xian.qcow2  -monitor tcp:localhost:6666,server,nowait -s -S & 
 gdb -x "$(sh_dir $0)/xian.gdb"

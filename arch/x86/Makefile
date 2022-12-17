@@ -25,9 +25,10 @@ endif #ifeq ($(CONFIG_X86_32),y)
 
 KBUILD_LDFLAGS := -m elf_$(UTS_MACHINE)
 
+#压栈方式：从左到右，rax，rdx，rcx,由-mregparm=3指定
 REALMODE_CFLAGS	:= -m32 -g -Os -DDISABLE_BRANCH_PROFILING \
 		   -Wall -Wstrict-prototypes -march=i386 -mregparm=3 \
-           -fno-strict-aliasing -fomit-frame-pointer -fno-pic -mno-mmx -mno-sse -fcf-protection=none -ffreestanding -fno-stack-protector -Wno-address-of-packed-member  \
+           -fno-strict-aliasing -fomit-frame-pointer -fno-pic -mno-mmx -mno-sse -fcf-protection=none -ffreestanding -fno-stack-protector -Wno-address-of-packed-member  
 #第三行需要尝试
 export REALMODE_CFLAGS
 
