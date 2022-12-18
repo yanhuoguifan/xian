@@ -20,7 +20,6 @@ int multiboot_save () {
 		tag->type != MULTIBOOT_TAG_TYPE_END;
 		tag = (struct multiboot_tag *)((multiboot_uint8_t *)tag + ((tag->size + 7) & ~7))) {
         printf ("Tag 0x%x, Size 0x%x\n", tag->type, tag->size);
-        //下面的switch会触发bug
         switch (tag->type) {
         case MULTIBOOT_TAG_TYPE_CMDLINE:
             printf ("Command line = %s\n",
@@ -55,7 +54,7 @@ int multiboot_save () {
             break;
         //MULTIBOOT_TAG_TYPE_FRAMEBUFFER也是一块显存，
         //下面会对角渲染出一条蓝线，暂时注释
-        case MULTIBOOT_TAG_TYPE_FRAMEBUFFER: {、
+        case MULTIBOOT_TAG_TYPE_FRAMEBUFFER: {
             /*
             multiboot_uint32_t color;
             unsigned i;

@@ -2,7 +2,7 @@
 targets		:= setup.elf bzImage
 
 setup-y		+= header.o main.o copy.o printf.o
-setup-y     += memory.o tty.o string.o
+setup-y     += memory.o tty.o string.o head_$(BITS).o
 
 setup-$(CONFIG_MULTIBOOT2) += multiboot2_parse.o
 setup-$(CONFIG_MULTIBOOT1) += multiboot1_parse.o
