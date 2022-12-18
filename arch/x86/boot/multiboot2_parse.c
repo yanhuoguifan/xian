@@ -50,31 +50,19 @@ int multiboot_save () {
         
         //可寻址的物理内存空间，需要保存
         case MULTIBOOT_TAG_TYPE_MMAP: {
-            multiboot_memory_map_t *mmap;
             multiboot_tag_mmap = (struct multiboot_tag_mmap *) tag;
-            printf ("mmap\n");
-            for (mmap = ((struct multiboot_tag_mmap *) tag)->entries;
-                (multiboot_uint8_t *) mmap 
-                < (multiboot_uint8_t *) tag + tag->size;
-                mmap = (multiboot_memory_map_t *) 
-                ((unsigned long) mmap
-                + ((struct multiboot_tag_mmap *) tag)->entry_size))
-                printf (" base_addr = 0x%x%x,"
-                    " length = 0x%x%x, type = 0x%x\n",
-                    (unsigned) (mmap->addr >> 32),
-                    (unsigned) (mmap->addr & 0xffffffff),
-                    (unsigned) (mmap->len >> 32),
-                    (unsigned) (mmap->len & 0xffffffff),
-                    (unsigned) mmap->type);
             }
             break;
-        case MULTIBOOT_TAG_TYPE_FRAMEBUFFER: {
+        //MULTIBOOT_TAG_TYPE_FRAMEBUFFER也是一块显存，
+        //下面会对角渲染出一条蓝线，暂时注释
+        case MULTIBOOT_TAG_TYPE_FRAMEBUFFER: {、
+            /*
             multiboot_uint32_t color;
             unsigned i;
             struct multiboot_tag_framebuffer *tagfb
                 = (struct multiboot_tag_framebuffer *) tag;
+            //fb是一块显存，后面有需要再用
             void *fb = (void *) (unsigned long) tagfb->common.framebuffer_addr;
-
             switch (tagfb->common.framebuffer_type) {
             case MULTIBOOT_FRAMEBUFFER_TYPE_INDEXED: {
                 unsigned best_distance, distance;
@@ -145,6 +133,7 @@ int multiboot_save () {
                 }
             }
             break;
+            */
         }
 
         }

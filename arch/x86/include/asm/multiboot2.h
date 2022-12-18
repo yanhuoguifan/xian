@@ -280,6 +280,11 @@ struct multiboot_tag_framebuffer_common
 	multiboot_uint32_t size;
 
 	multiboot_uint64_t framebuffer_addr;
+	/*framebuffer_pitch：
+	 Buffers in video ram generally have a stride
+	 (also called pitch) associated with them. 
+	 The stride is the width of the buffer in bytes.
+	 Pitch也就是液晶屏每一行与下一行之间的步进量。*/
 	multiboot_uint32_t framebuffer_pitch;
 	multiboot_uint32_t framebuffer_width;
 	multiboot_uint32_t framebuffer_height;
