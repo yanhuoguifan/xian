@@ -15,10 +15,7 @@ format_fs(){
 	else
 		sudo mount -t ext2 "${img_path}.raw" "${img_mount_path}"
 		exist_fs=$?
-		if [ "${exist_fs}" -eq 1 ]
-		then
-			return
-		elif [ "${exist_fs}" -eq 1 ] && [ -d "${img_mount_path}/boot" ]
+		if [ "${exist_fs}" -eq 1 ] && [ -d "${img_mount_path}/boot" ]
 		then
 			return
 		fi

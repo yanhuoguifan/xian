@@ -17,14 +17,15 @@
 
 #include "boot.h"
 
-	//multiboot_header必须放在可写的段中，不然qemu或grub无法识别
+	//multiboot_header必须放在可写可执行的段中，不然grub无法识别
     .section ".header", "a"
 	.global _start
 _start:
 	jmp start_entry
 
+
 /* Align 64 bits boundary. */
-	.align 4
+	.align 8
 #ifdef CONFIG_MULTIBOOT2
 
 	/* Multiboot header. */
@@ -38,10 +39,33 @@ multiboot_header:
 	/* checksum */
 	.long -(MULTIBOOT2_HEADER_MAGIC + MULTIBOOT_ARCHITECTURE_I386 + (multiboot_header_end - multiboot_header))
 
-	.align 4
+address_tag_start:      
+        .short MULTIBOOT_HEADER_TAG_ADDRESS
+        .short MULTIBOOT_HEADER_TAG_OPTIONAL
+        .long address_tag_end - address_tag_start
+        /*  header_addr */
+        .long   multiboot_header
+        /*  load_addr */
+        .long   _start
+        /*  load_end_addr */
+        .long   0
+        /*  bss_end_addr */
+        .long   _end
+address_tag_end:
+
+entry_address_tag_start:        
+        .short MULTIBOOT_HEADER_TAG_ENTRY_ADDRESS
+        .short MULTIBOOT_HEADER_TAG_OPTIONAL
+        .long entry_address_tag_end - entry_address_tag_start
+        /*  entry_addr */
+        .long start_entry
+entry_address_tag_end:
+
+//这里需要8字节对齐
+	.align 8
 	.short MULTIBOOT_HEADER_TAG_END
 	.short 0
-	.long 4
+	.long 8
 
     multiboot_header_end:
 
@@ -58,13 +82,13 @@ multiboot_header_end:
 
 #endif
 
-	.globl	hdr
+.globl	hdr
 hdr:
-multiboot_addr:	.long 0			/* Filled in by header.S */
-multiboot_magic:	.long 0     /* Filled in by header.S */
-heap_end_ptr:	.long	_end+STACK_SIZE-512
+	multiboot_addr:	.long 0			/* Filled in by header.S */
+	multiboot_magic:	.long 0     /* Filled in by header.S */
+	heap_end_ptr:	.long	_end+STACK_SIZE-512
 
-    .section ".entrytext", "ax"
+.section ".entrytext" , "ax"
 start_entry:
 
 	cli  				//此时还没有设置好保护模式的中断处理，所以必须关闭中断
