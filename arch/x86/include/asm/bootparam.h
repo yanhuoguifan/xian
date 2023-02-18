@@ -5,9 +5,11 @@
 #include <asm/e820.h>
 
 struct setup_header {
+    __u16   xian_magic;
     __u32   multiboot_addr;
     __u32   multiboot_magic;
     __u32   heap_end_ptr;
+    __u32	code32_start;
 } __attribute__((packed));
 
 struct boot_params {

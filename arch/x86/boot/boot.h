@@ -37,6 +37,13 @@ void __attribute__((noreturn)) die(void);
 /* memory.c */
 int detect_memory(void);
 
+/* cm.c */
+void __attribute__((noreturn)) go_to_change_mode(void);
+
+/* cmjump.S */
+void __attribute__((noreturn))
+	change_mode_jump(u32 entrypoint);
+
 /* printf.c */
 int vsprintf(char *buf, const char *fmt, va_list args);
 int printf(const char *fmt, ...);

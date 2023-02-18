@@ -83,6 +83,10 @@ config MULTIBOOT1
 	def_bool y
 	depends on !MULTIBOOT2
 
-
+config XIAN_MAGIC
+	hex "the magic of xian header" if (EXPERT || CRASH_DUMP)
+	default "0xAA55"
+	help
+	  This is the correct value for verifying the header file
 
 source "init/Kconfig"

@@ -6,7 +6,7 @@ int multiboot_save () {
 	struct multiboot_tag *tag;
     
     if (boot_params.hdr.multiboot_magic != MULTIBOOT2_BOOTLOADER_MAGIC) {
-        printf ("Invalid magic number: 0x%x\n", (unsigned) boot_params.hdr.multiboot_magic);
+        printf ("Invalid magic number: 0x\n", (unsigned) boot_params.hdr.multiboot_magic);
         return -1;
     }
 
@@ -15,7 +15,6 @@ int multiboot_save () {
         return -1;
     }
 
-    
 	for (tag = (struct multiboot_tag *)(boot_params.hdr.multiboot_addr + 8);
 		tag->type != MULTIBOOT_TAG_TYPE_END;
 		tag = (struct multiboot_tag *)((multiboot_uint8_t *)tag + ((tag->size + 7) & ~7))) {

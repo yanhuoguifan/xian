@@ -5,10 +5,11 @@
 ROOT_DEV	:= CURRENT
 
 #targets用于读cmd文件
-targets		:= setup.elf bzImage
+targets		:= setup.elf setup.bin 
 
-setup-y         += header.o main.o copy.o printf.o
-setup-y     += memory.o tty.o string.o
+setup-y     += header.o main.o copy.o printf.o
+setup-y     += memory.o tty.o string.o cmjump.o
+setup-y     += cm.o
 
 setup-$(CONFIG_MULTIBOOT2) += multiboot2_parse.o
 setup-$(CONFIG_MULTIBOOT1) += multiboot1_parse.o
@@ -20,14 +21,14 @@ SETUP_OBJS = $(addprefix $(obj)/,$(setup-y))
 KBUILD_CFLAGS	:= $(REALMODE_CFLAGS) -D_SETUP
 KBUILD_AFLAGS	:= $(KBUILD_CFLAGS) -D__ASSEMBLY__
 
-quiet_cmd_image = BUILD   $@
-cmd_image = $(obj)/tools/build $(obj)/setup.bin $(obj)/change_mode/xian \
-	$(ROOT_DEV) > $@
+#生成的启动文件和内核文件，依赖 setup.elf，setup依赖/arch/x86/boot/文件夹下面的文件
+$(obj)/bzImage: $(obj)/setup.bin $(obj)/xian.bin  FORCE
+	@echo 'Kernel: $@ is ready' ' (#'`cat .version`')'
 
-#生成真正的内核文件，依赖 setup.elf，setup依赖/arch/x86/boot/文件夹下面的文件
-$(obj)/bzImage: $(obj)/setup.bin 
+$(obj)/xian.bin: $(obj)/change_mode/xian.elf FORCE
+	$(shell ln $(obj)/change_mode/xian.elf $(obj)/xian.bin)
 
-LDFLAGS_setup.elf	:= -m elf_i386 -T
+LDFLAGS_setup.elf	:=  -T
 $(obj)/setup.elf: $(src)/setup.ld $(SETUP_OBJS) FORCE
 	$(call if_changed,ld)
 
@@ -35,12 +36,12 @@ OBJCOPYFLAGS_setup.bin	:= -O binary
 $(obj)/setup.bin: $(obj)/setup.elf FORCE
 	$(call if_changed,objcopy)
 
-$(obj)/change_mode/xian: FORCE
+$(obj)/change_mode/xian.elf: FORCE
 	$(Q)$(MAKE) $(build)=$(obj)/change_mode $@
 
 .PHONY : $(obj)/install
 $(obj)/install: 
-	$(shell $(obj)/grub/grub_env.sh xian $(obj)/setup.bin hdisk)
+	$(shell $(obj)/grub/grub_env.sh xian $(obj)/setup.bin $(obj)/xian.bin hdisk)
 
 .PHONY : $(obj)/clean
 $(obj)/clean:

@@ -47,7 +47,8 @@ MAKE_COLOR(BLACK, RED) | BRIGHT | FLASH
 
 #define COLOR_DEFAULT	(MAKE_COLOR(TEXT_BLACK, TEXT_WHITE))
 
-int cursor_x = 0, cursor_y = 0;
+//静态变量如果有初始值，初始化有问题
+int cursor_y ,cursor_x;
 
 static void set_cursor(unsigned short cursor)
 {

@@ -21,8 +21,18 @@
     .section ".header", "a"
 	.global _start
 _start:
-	jmp start_entry
 
+	.align 8
+
+.globl	hdr
+hdr:
+	xian_magic:     .word CONFIG_XIAN_MAGIC
+	multiboot_addr:	.long 0			/* Filled in by header.S */
+	multiboot_magic:	.long 0     /* Filled in by header.S */
+	heap_end_ptr:	.long	_end+STACK_SIZE-512
+	code32_start:			# here loaders can put a different
+							# start address for 32-bit code.
+		.long	0x100000	# 0x100000 = default for big kernel
 
 /* Align 64 bits boundary. */
 	.align 8
@@ -58,7 +68,7 @@ entry_address_tag_start:
         .short MULTIBOOT_HEADER_TAG_OPTIONAL
         .long entry_address_tag_end - entry_address_tag_start
         /*  entry_addr */
-        .long start_entry
+        .long _start_entry
 entry_address_tag_end:
 
 //这里需要8字节对齐
@@ -82,15 +92,10 @@ multiboot_header_end:
 
 #endif
 
-.globl	hdr
-hdr:
-	multiboot_addr:	.long 0			/* Filled in by header.S */
-	multiboot_magic:	.long 0     /* Filled in by header.S */
-	heap_end_ptr:	.long	_end+STACK_SIZE-512
-
 .section ".entrytext" , "ax"
-start_entry:
-
+.global _start_entry
+_start_entry:
+	
 	cli  				//此时还没有设置好保护模式的中断处理，所以必须关闭中断
                        //先保存multiboot的魔数和信息地址
 	movl	%ebx, multiboot_addr

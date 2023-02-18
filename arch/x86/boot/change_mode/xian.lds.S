@@ -1,3 +1,7 @@
+#include <asm-generic/xian.lds.h>
+
+#undef i386
+
 #ifdef CONFIG_X86_64
 OUTPUT_ARCH(i386:x86-64)
 ENTRY(startup_64)
@@ -14,6 +18,7 @@ SECTIONS
 	. = 0;
 	.head.text : {
 		_head = . ;
+		HEAD_TEXT
 		_ehead = . ;
 	}
 	.text :	{
