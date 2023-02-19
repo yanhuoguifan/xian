@@ -9,7 +9,7 @@ targets		:= setup.elf setup.bin
 
 setup-y     += header.o main.o copy.o printf.o
 setup-y     += memory.o tty.o string.o cmjump.o
-setup-y     += cm.o
+setup-y     += cm.o save_modules.o
 
 setup-$(CONFIG_MULTIBOOT2) += multiboot2_parse.o
 setup-$(CONFIG_MULTIBOOT1) += multiboot1_parse.o
@@ -26,7 +26,7 @@ $(obj)/bzImage: $(obj)/setup.bin $(obj)/xian.bin  FORCE
 	@echo 'Kernel: $@ is ready' ' (#'`cat .version`')'
 
 $(obj)/xian.bin: $(obj)/change_mode/xian.elf FORCE
-	$(shell ln $(obj)/change_mode/xian.elf $(obj)/xian.bin)
+	$(shell ln -f $(obj)/change_mode/xian.elf $(obj)/xian.bin)
 
 LDFLAGS_setup.elf	:=  -T
 $(obj)/setup.elf: $(src)/setup.ld $(SETUP_OBJS) FORCE

@@ -54,7 +54,7 @@ bzImage: xian
 install: bzImage
 	$(Q)$(MAKE) $(build)=$(boot) $(INSTALL_IMAGE)
 
-distclean: clean_install
+clean: clean_install
 clean_install: 
 	$(Q)$(MAKE) $(build)=$(boot) $(CLEAN_IMAGE)
 

@@ -24,6 +24,10 @@ void main(void){
         puts("detect_memory fail");
         die();
     }
-
+    /*save modules,include kernel and initrd*/
+    if (save_modules() != 0) {
+        puts("save_modules fail");
+        die();
+    }
     go_to_change_mode();
 }

@@ -1,6 +1,7 @@
 #include "boot.h"
 
 struct multiboot_tag_mmap *multiboot_tag_mmap;
+struct multiboot_tag_module *(multiboot_tag_module[2]);
 
 int multiboot_save () {
 	struct multiboot_tag *tag;
@@ -33,6 +34,11 @@ int multiboot_save () {
                 ((struct multiboot_tag_module *) tag)->mod_start,
                 ((struct multiboot_tag_module *) tag)->mod_end,
                 ((struct multiboot_tag_module *) tag)->cmdline);
+            //只需要存储两个moudle，一个是kernel，一个是initrd
+            if(!strcmp(((struct multiboot_tag_module *) tag)->cmdline,"kernel")) 
+                multiboot_tag_module[0] = (struct multiboot_tag_module *) tag;
+            if(!strcmp(((struct multiboot_tag_module *) tag)->cmdline,"initrd"))
+                multiboot_tag_module[1] = (struct multiboot_tag_module *) tag;
             break;
         case MULTIBOOT_TAG_TYPE_BASIC_MEMINFO:
             printf ("mem_lower = %uKB, mem_upper = %uKB\n",
