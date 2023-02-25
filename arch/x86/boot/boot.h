@@ -10,6 +10,7 @@
 #include <stdarg.h>
 #include <xian/types.h>
 #include <asm/setup.h>
+#include <xian/elf.h>
 #include "ctype.h"
 
 extern struct setup_header hdr;
@@ -43,6 +44,7 @@ void __attribute__((noreturn)) die(void);
 
 /* memory.c */
 int detect_memory(void);
+void *malloc(unsigned long size);
 
 /* cm.c */
 void __attribute__((noreturn)) go_to_change_mode(void);
@@ -65,6 +67,12 @@ void putchar(int);
 
 /* save_modules.c */
 int save_modules(void);
+
+/* load_kernel.c */
+int load_kernel(void);
+
+/* jump_kernel.S */
+int load_kernel(void);
 
 #endif /* __ASSEMBLY__ */
 

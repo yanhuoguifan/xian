@@ -15,7 +15,7 @@ SECTIONS
 	/* Be careful parts of head_64.S assume startup_32 is at
 	 * address 0.
 	 */
-	. = 0;
+	. = 0x200000;
 	.head.text : {
 		_head = . ;
 		HEAD_TEXT

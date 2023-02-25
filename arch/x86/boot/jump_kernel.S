@@ -6,9 +6,9 @@
     
 //目的是为了跳到change_mode/head_(bits).S里的
 /*
- * void change_mode_jump(u32 entrypoint);
+ * void jump_kernel(u32 entrypoint);
  */
-GLOBAL(change_mode_jump)
+GLOBAL(jump_kernel)
 //	jmpl	*%eax			# Jump to the 32-bit entrypoint
 	call die
-ENDPROC(change_mode_jump)
+ENDPROC(jump_kernel)

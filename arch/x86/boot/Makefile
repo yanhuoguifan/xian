@@ -7,9 +7,9 @@ ROOT_DEV	:= CURRENT
 #targets用于读cmd文件
 targets		:= setup.elf setup.bin 
 
-setup-y     += header.o main.o copy.o printf.o
-setup-y     += memory.o tty.o string.o cmjump.o
-setup-y     += cm.o save_modules.o
+setup-y     += header.o main.o copy_c.o printf.o
+setup-y     += memory.o tty.o string.o jump_kernel.o
+setup-y     += save_modules.o copy_s.o load_kernel.o
 
 setup-$(CONFIG_MULTIBOOT2) += multiboot2_parse.o
 setup-$(CONFIG_MULTIBOOT1) += multiboot1_parse.o

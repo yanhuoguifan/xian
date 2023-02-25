@@ -4,6 +4,8 @@
 
 #include "boot.h"
 
+static u32 setup_memory_start;
+static u32 setup_memory_end;
 
 static int detect_memory_e820(void)
 {
@@ -45,8 +47,16 @@ static int detect_memory_multiboot(void)
                     desc[count].type = mmap->type; 
 
                     count++;
+
+                    if (mmap->addr <= 0x100000 && mmap->len + mmap->addr >= 0x200000 && mmap->type == E820_RAM) {
+                        setup_memory_start = 0x100000;
+                        setup_memory_end = 0x200000;
+                    }
                 }
-    	
+    if (setup_memory_start != 0x100000 || setup_memory_end != 0x200000) {
+        puts("can not find memory for setup_memory");
+        return 0;
+    }
 
 	return boot_params.e820_entries = count;
 }
@@ -64,4 +74,21 @@ int detect_memory(void)
     }
 
 	return err;
+}
+
+/*调用后有可能破坏multiboot协议的信息，需要在此之前进行保存*/
+/*只能在detect_memory与save_modules后调用*/
+void *malloc(unsigned long size) {
+    void* ptr = NULL;
+    if (setup_memory_start == 0 || setup_memory_end == 0 || boot_params.initrd.module_start == 0) {
+        return ptr;
+    }
+    if (setup_memory_start == 0x100000) {
+        setup_memory_start = boot_params.initrd.module_start + boot_params.initrd.module_len;
+    }
+    if (setup_memory_start + size < setup_memory_end) {
+        ptr = (void*)setup_memory_start;
+        setup_memory_start += size;
+    }
+    return ptr;
 }
