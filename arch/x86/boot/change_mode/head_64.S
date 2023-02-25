@@ -8,7 +8,8 @@
 	.code32
 ENTRY(startup_32)
 
-    movl	%eax, %ds
+    hlt
+	jmp  startup_32
 
 	.code64
 	.org 0x200

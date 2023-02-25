@@ -4,16 +4,14 @@
 
 #ifdef CONFIG_X86_64
 OUTPUT_ARCH(i386:x86-64)
-ENTRY(startup_64)
 #else
 OUTPUT_ARCH(i386)
-ENTRY(startup_32)
 #endif
-
+ENTRY(startup_32)
 SECTIONS
 {
 	/* Be careful parts of head_64.S assume startup_32 is at
-	 * address 0.
+	 * address 0x200000.
 	 */
 	. = 0x200000;
 	.head.text : {

@@ -1,6 +1,6 @@
 #include "boot.h"
 
-static int parse_elf(void *kernel_file)
+static int parse_elf(void *kernel_file, void** kernel_entry)
 {
 #ifdef CONFIG_X86_64
 	Elf64_Ehdr ehdr;
@@ -28,7 +28,6 @@ static int parse_elf(void *kernel_file)
 		puts("Failed to allocate space for phdrs");
 		return -1;
 	}
-
 	memcpy(phdrs, kernel_file + ehdr.e_phoff, sizeof(*phdrs) * ehdr.e_phnum);
 
 	for (i = 0; i < ehdr.e_phnum; i++) {
@@ -49,10 +48,11 @@ static int parse_elf(void *kernel_file)
 		default:  break;
 		}
 	}
+	*kernel_entry = (void*)ehdr.e_entry;
 	return 0;
 }
 
-int load_kernel(void)
+int load_kernel(void** kernel_entry)
 {
-    return parse_elf((void*)boot_params.kernel.module_start);
+    return parse_elf((void*)boot_params.kernel.module_start, kernel_entry);
 }

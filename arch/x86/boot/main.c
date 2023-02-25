@@ -8,6 +8,8 @@ static void copy_boot_params(void){
 
 void main(void){
 
+    void* kernel_entry;
+
     copy_boot_params();
     /* First, copy the boot header into the "zeropage" */
     if (boot_params.hdr.multiboot_magic != MULTIBOOT2_BOOTLOADER_MAGIC) {
@@ -30,10 +32,11 @@ void main(void){
         return;
     }
 
-    if (load_kernel() != 0) {
-        puts("load_modules fail");
+    if (load_kernel(&kernel_entry) != 0) {
+        puts("load_kernel fail");
         return;
     }
 
-    jump_kernel();
+    printf("jump to %d to kernel", kernel_entry);
+    jump_kernel(kernel_entry, &boot_params);
 }
