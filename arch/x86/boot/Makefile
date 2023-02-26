@@ -25,8 +25,8 @@ KBUILD_AFLAGS	:= $(KBUILD_CFLAGS) -D__ASSEMBLY__
 $(obj)/bzImage: $(obj)/setup.bin $(obj)/xian.bin  FORCE
 	@echo 'Kernel: $@ is ready' ' (#'`cat .version`')'
 
-$(obj)/xian.bin: $(obj)/change_mode/xian.elf FORCE
-	$(shell ln -f $(obj)/change_mode/xian.elf $(obj)/xian.bin)
+$(obj)/xian.bin: $(obj)/kernel_head/xian.elf FORCE
+	$(shell ln -f $(obj)/kernel_head/xian.elf $(obj)/xian.bin)
 
 LDFLAGS_setup.elf	:=  -T
 $(obj)/setup.elf: $(src)/setup.ld $(SETUP_OBJS) FORCE
@@ -36,8 +36,8 @@ OBJCOPYFLAGS_setup.bin	:= -O binary
 $(obj)/setup.bin: $(obj)/setup.elf FORCE
 	$(call if_changed,objcopy)
 
-$(obj)/change_mode/xian.elf: FORCE
-	$(Q)$(MAKE) $(build)=$(obj)/change_mode $@
+$(obj)/kernel_head/xian.elf: FORCE
+	$(Q)$(MAKE) $(build)=$(obj)/kernel_head $@
 
 .PHONY : $(obj)/install
 $(obj)/install: 

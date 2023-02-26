@@ -1,6 +1,6 @@
 #include <asm-generic/xian.lds.h>
 
-#undef i386
+#include <asm/page_types.h>
 
 #ifdef CONFIG_X86_64
 OUTPUT_ARCH(i386:x86-64)
@@ -45,5 +45,13 @@ SECTIONS
 		. = ALIGN(8);	/* For convenience during zeroing */
 		_ebss = .;
 	}
+#ifdef CONFIG_X86_64
+       . = ALIGN(PAGE_SIZE);
+       .pgtable : {
+		_pgtable = . ;
+		*(.pgtable)
+		_epgtable = . ;
+	}
+#endif
 	_end = .;
 }

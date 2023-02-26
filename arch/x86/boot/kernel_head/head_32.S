@@ -10,7 +10,3 @@ ENTRY(startup_32)
 
     hlt
 	jmp  startup_32
-
-	.code64
-	.org 0x200
-ENTRY(startup_64)
