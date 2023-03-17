@@ -14,9 +14,8 @@ format_fs(){
 	then
 		dd if=/dev/zero of="${img_path}.raw" bs=1k count=8k
 	else
-		sudo mount -t ext2 "${img_path}.raw" "${img_mount_path}"
-		exist_fs=$?
-		if [ "${exist_fs}" -eq 1 ] && [ -d "${img_mount_path}/boot" ]
+		exist_fs=$(sudo mount | grep "${img_mount_path}")
+		if [ -n "${exist_fs}"  ] && [ -d "${img_mount_path}/boot" ]
 		then
 			return
 		fi
@@ -27,7 +26,7 @@ format_fs(){
 	losetup_device=$(sudo losetup -f)
 	sudo losetup "$losetup_device" "${img_path}.raw"
 	sudo mkfs -q  -t ext2  "$losetup_device"
-	sudo mount -o loop "${img_path}.raw" "${img_mount_path}"
+	sudo mount -o loop "${img_path}.raw" "${img_mount_path}" || true
 	sudo mkdir "${img_mount_path}/boot"
 	sudo grub-install --boot-directory="${img_mount_path}/boot" --force --allow-floppy $losetup_device
 }
@@ -51,7 +50,6 @@ convert_img(){
 	#因为挂载的文件无法被使用，先卸载，转成qcow2文件后再挂载
 	sudo umount "${img_mount_path}"
 	qemu-img convert -f raw -O qcow2 "${img_path}.raw" "${img_path}.qcow2"
-	sudo mount -o loop "${img_path}.raw" "${img_mount_path}"
 }
 
 install_kernel(){

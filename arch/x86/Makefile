@@ -28,7 +28,7 @@ KBUILD_LDFLAGS := -m elf_$(UTS_MACHINE)
 #压栈方式：从左到右，rax，rdx，rcx,由-mregparm=3指定
 #目标环境是一个独立的环境，没有标准库的支持,由-ffreestanding指定
 #链接时不要使用标准系统文件或库：-nostdlib
-#进制sse，sse2和mmx指令集：-mno-sse -mno-sse2 -mno-mmx
+#禁止sse，sse2和mmx指令集：-mno-sse -mno-sse2 -mno-mmx
 REALMODE_CFLAGS	:= -m32 -g -Os -march=i386 -mregparm=3 \
                     -ffreestanding -nostdlib -mno-sse -mno-sse2 -mno-mmx
 #第三行需要尝试
