@@ -3,6 +3,12 @@
 
 /* CPU model specific register (MSR) numbers */
 
+/* x86-64 specific MSRs */
+#define MSR_EFER		0xc0000080 /* extended feature register */
+
+/* EFER bits: */
+#define _EFER_LME		8  /* Long mode enable */
+
 /* K7 MSRs */
 #define MSR_K7_HWCR			0xc0010015
 

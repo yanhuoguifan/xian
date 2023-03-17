@@ -1,9 +1,11 @@
 	.code32
 	.text
 
-#include <xian/linkage.h>
 #include <xian/init.h>
+#include <xian/linkage.h>
+#include <asm/segment.h>
 #include <asm/boot.h>
+#include <asm/msr.h>
 #include <asm/processor-flags.h>
 
     __HEAD
@@ -83,6 +85,31 @@ ENTRY(startup_32)
 	leal	pgtable, %eax
 	movl	%eax, %cr3
 
+	/* Enable Long mode in EFER (Extended Feature Enable Register) */
+	//把 MSR_EFER（0xc0000080）放到 ecx 寄存器中，然后调用 rdmsr 指令读取 MSR 寄存器。
+	//在 rdmsr 执行之后，我们将会获得 edx:eax 中的结果值，其取决于 ecx 的值。
+	//我们通过 btsl 指令取反 EFER_LME 位，并且通过 wrmsr 指令将 eax 的数据写入 MSR 寄存器。
+	movl	$MSR_EFER, %ecx
+	rdmsr
+	btsl	$_EFER_LME, %eax
+	wrmsr
+
+	/*
+	 * Setup for the jump to 64bit mode
+	 *
+	 * When the jump is performend we will be in long mode but
+	 * in 32bit compatibility mode with EFER.LME = 1, CS.L = 0, CS.D = 1
+	 * (and in turn EFER.LMA = 1).	To jump into 64bit mode we use
+	 * the new gdt/idt that has __KERNEL_CS with CS.L = 1.
+	 * 使用长跳转从32位进入64位
+	 */
+
+	/* Enter paged protected Mode, activating Long Mode */
+	movl	$(X86_CR0_PG | X86_CR0_PE), %eax /* Enable Paging and Protected mode */
+	movl	%eax, %cr0
+
+	//使用长跳刷新CS段寄存器
+	jmp $__KERNEL_CS, $startup_64
 ENDPROC(startup_32)
 
 no_longmode:
@@ -96,6 +123,10 @@ no_longmode:
 	.code64
 	.org 0x200
 ENTRY(startup_64)
+1:
+	hlt
+	jmp     1b
+
 
 	.data
 gdt:
