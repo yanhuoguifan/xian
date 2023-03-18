@@ -123,6 +123,48 @@ no_longmode:
 	.code64
 	.org 0x200
 ENTRY(startup_64)
+
+	/* Setup data segments. */
+	//由于x64再64位模式下不再使用大部分数据段描述符，故置位0
+	xorl	%eax, %eax
+	movl	%eax, %ds
+	movl	%eax, %es
+	movl	%eax, %ss
+	movl	%eax, %fs
+	movl	%eax, %gs
+	//lldt加载局部描述符表，这里相当于不使用局部描述符表
+	lldt	%ax
+
+	/* Zero EFLAGS */
+	//1.可以清除之前的标志位
+	//2.禁止中断（IF位）
+	//3.禁止调度器（TF位）
+	//4.初始化EFLAGS寄存器
+	pushq	$0
+	popfq
+
+/*
+ * Jump to the text address.
+ * 避免后续.head.text与text段不在相邻导致问题，这里使用跳转进入text代码段
+ */
+	leaq	text_head, %rax
+	jmp	*%rax
+
+	.text
+text_head:
+
+/*
+ * Clear BSS (stack is currently empty)
+ */
+	xorl	%eax, %eax
+	leaq    _bss(%rip), %rdi
+	leaq    _ebss(%rip), %rcx
+	//将 rcx 减去 rdi，得到 BSS 段的大小。
+	subq	%rdi, %rcx
+	//将 rcx 右移三位，相当于除以 8，计算出要清零的 quadword 数量。
+	shrq	$3, %rcx
+	rep	stosq
+
 1:
 	hlt
 	jmp     1b
@@ -136,6 +178,7 @@ gdt:
 	.quad	0x0000000000000000	/* NULL descriptor */
 	//CS.L = 1 CS.D = 0
 	.quad	0x00af9a000000ffff	/* __KERNEL_CS */
+	//实际上__KERNEL_DS不再起作用了
 	.quad	0x00cf92000000ffff	/* __KERNEL_DS */
 	.quad	0x0080890000000000	/* TS descriptor */
 	.quad   0x0000000000000000	/* TS continued */

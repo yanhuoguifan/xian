@@ -41,7 +41,7 @@ $(obj)/kernel_head/xian.elf: FORCE
 
 .PHONY : $(obj)/install
 $(obj)/install: 
-	$(shell $(obj)/grub/grub_env.sh xian $(obj)/setup.bin $(obj)/xian.bin hdisk 2&>1)
+	$(shell $(obj)/grub/grub_env.sh xian $(obj)/setup.bin $(obj)/xian.bin hdisk )
 
 .PHONY : $(obj)/clean
 $(obj)/clean:

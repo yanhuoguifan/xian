@@ -50,6 +50,7 @@ convert_img(){
 	#因为挂载的文件无法被使用，先卸载，转成qcow2文件后再挂载
 	sudo umount "${img_mount_path}"
 	qemu-img convert -f raw -O qcow2 "${img_path}.raw" "${img_path}.qcow2"
+	sudo mount -o loop "${img_path}.raw" "${img_mount_path}" || true
 }
 
 install_kernel(){
