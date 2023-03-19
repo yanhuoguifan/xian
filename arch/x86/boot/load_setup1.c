@@ -1,6 +1,6 @@
 #include "boot.h"
 
-static int parse_elf(void *kernel_file, void** kernel_entry)
+static int parse_elf(void *setup1_file, void** setup1_entry)
 {
 #ifdef CONFIG_X86_64
 	Elf64_Ehdr ehdr;
@@ -12,7 +12,7 @@ static int parse_elf(void *kernel_file, void** kernel_entry)
 	void *dest;
 	int i;
 
-	memcpy(&ehdr, kernel_file, sizeof(ehdr));
+	memcpy(&ehdr, setup1_file, sizeof(ehdr));
 	if (ehdr.e_ident[EI_MAG0] != ELFMAG0 ||
 		ehdr.e_ident[EI_MAG1] != ELFMAG1 ||
 		ehdr.e_ident[EI_MAG2] != ELFMAG2 ||
@@ -21,38 +21,33 @@ static int parse_elf(void *kernel_file, void** kernel_entry)
 		return -1;
 	}
 
-	puts("Parsing ELF of kernel... \n");
+	puts("Parsing ELF of setup1... \n");
 	
 	phdrs = malloc(sizeof(*phdrs) * ehdr.e_phnum);
 	if (!phdrs) {
 		puts("Failed to allocate space for phdrs");
 		return -1;
 	}
-	memcpy(phdrs, kernel_file + ehdr.e_phoff, sizeof(*phdrs) * ehdr.e_phnum);
+	memcpy(phdrs, setup1_file + ehdr.e_phoff, sizeof(*phdrs) * ehdr.e_phnum);
 
 	for (i = 0; i < ehdr.e_phnum; i++) {
 		phdr = &phdrs[i];
 
 		switch (phdr->p_type) {
 		case PT_LOAD:
-#ifdef CONFIG_RELOCATABLE
-			dest = kernel_file;
-			dest += (phdr->p_paddr - LOAD_PHYSICAL_ADDR);
-#else
 			dest = (void *)(phdr->p_paddr);
-#endif
 			memcpy(dest,
-			       kernel_file + phdr->p_offset,
+			       setup1_file + phdr->p_offset,
 			       phdr->p_filesz);
 			break;
 		default:  break;
 		}
 	}
-	*kernel_entry = (void*)ehdr.e_entry;
+	*setup1_entry = (void*)ehdr.e_entry;
 	return 0;
 }
 
-int load_kernel(void** kernel_entry)
+int load_setup1(void** setup1_entry)
 {
-    return parse_elf((void*)boot_params.kernel.module_start, kernel_entry);
+    return parse_elf((void*)boot_params.setup1.module_start, setup1_entry);
 }

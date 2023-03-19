@@ -34,10 +34,10 @@ int multiboot_save () {
                 ((struct multiboot_tag_module *) tag)->mod_start,
                 ((struct multiboot_tag_module *) tag)->mod_end,
                 ((struct multiboot_tag_module *) tag)->cmdline);
-            //只需要存储两个moudle，一个是kernel，一个是initrd
+            //只需要存储两个moudle，一个是kernel，一个是setup1
             if(!strcmp(((struct multiboot_tag_module *) tag)->cmdline,"kernel")) 
                 multiboot_tag_module[0] = (struct multiboot_tag_module *) tag;
-            if(!strcmp(((struct multiboot_tag_module *) tag)->cmdline,"initrd"))
+            if(!strcmp(((struct multiboot_tag_module *) tag)->cmdline,"setup1"))
                 multiboot_tag_module[1] = (struct multiboot_tag_module *) tag;
             break;
         case MULTIBOOT_TAG_TYPE_BASIC_MEMINFO:

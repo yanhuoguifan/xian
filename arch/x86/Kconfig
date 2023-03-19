@@ -32,6 +32,11 @@ config X86_64
 	select SWIOTLB
 
 
+config SETUP1_START
+	hex "Physical address where the kernel is loaded" if (EXPERT || CRASH_DUMP)
+	default "0x200000"
+	
+
 config PHYSICAL_START
 	hex "Physical address where the kernel is loaded" if (EXPERT || CRASH_DUMP)
 	default "0x1000000"
@@ -39,21 +44,21 @@ config PHYSICAL_START
 	  This gives the physical address where the kernel is loaded.
 
 	  If kernel is a not relocatable (CONFIG_RELOCATABLE=n) then
-	  bzImage will decompress itself to above physical address and
-	  run from there. Otherwise, bzImage will run from the address where
+	  xian will decompress itself to above physical address and
+	  run from there. Otherwise, xian will run from the address where
 	  it has been loaded by the boot loader and will ignore above physical
 	  address.
 
 	  In normal kdump cases one does not have to set/change this option
-	  as now bzImage can be compiled as a completely relocatable image
+	  as now xian can be compiled as a completely relocatable image
 	  (CONFIG_RELOCATABLE=y) and be used to load and run from a different
 	  address. This option is mainly useful for the folks who don't want
-	  to use a bzImage for capturing the crash dump and want to use a
+	  to use a xian for capturing the crash dump and want to use a
 	  vmlinux instead. vmlinux is not relocatable hence a kernel needs
 	  to be specifically compiled to run from a specific memory area
 	  (normally a reserved region) and this option comes handy.
 
-	  So if you are using bzImage for capturing the crash dump,
+	  So if you are using xian for capturing the crash dump,
 	  leave the value here unchanged to 0x1000000 and set
 	  CONFIG_RELOCATABLE=y.  Otherwise if you plan to use vmlinux
 	  for capturing the crash dump change this value to start of
@@ -63,15 +68,16 @@ config PHYSICAL_START
 	  kernel. Please take a look at Documentation/admin-guide/kdump/kdump.rst
 	  for more details about crash dumps.
 
-	  Usage of bzImage for capturing the crash dump is recommended as
+	  Usage of xian for capturing the crash dump is recommended as
 	  one does not have to build two kernels. Same kernel can be used
 	  as production kernel and capture kernel. Above option should have
-	  gone away after relocatable bzImage support is introduced. But it
+	  gone away after relocatable xian support is introduced. But it
 	  is present because there are users out there who continue to use
 	  vmlinux for dump capture. This option should go away down the
 	  line.
 
 	  Don't change this unless you know what you are doing.
+
 
 config MULTIBOOT2
 	bool "Boot Start from MULTIBOOT2"

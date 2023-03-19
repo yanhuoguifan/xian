@@ -68,11 +68,11 @@ void putchar(int);
 /* save_modules.c */
 int save_modules(void);
 
-/* load_kernel.c */
-int load_kernel(void** kernel_entry);
+/* load_setup1.c */
+int load_setup1(void** kernel_entry);
 
-/* jump_kernel.S */
-void jump_kernel(void* kernel_entry, struct boot_params* boot_params);
+/* jump_setup1.S */
+void jump_setup1(void* kernel_entry, struct boot_params* boot_params);
 
 #endif /* __ASSEMBLY__ */
 

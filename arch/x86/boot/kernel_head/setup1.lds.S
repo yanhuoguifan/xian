@@ -11,9 +11,9 @@ ENTRY(startup_32)
 SECTIONS
 {
 	/* Be careful parts of head_64.S assume startup_32 is at
-	 * address 0x200000.
+	 * CONFIG_SETUP1_START,default 0x200000.
 	 */
-	. = 0x200000;
+	. = CONFIG_SETUP1_START;
 	.head.text : {
 		_head = . ;
 		HEAD_TEXT

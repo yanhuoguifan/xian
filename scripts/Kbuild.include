@@ -96,7 +96,7 @@ if_changed = $(if $(strip $(any-prereq) $(arg-check)),                       \
 #if_changed 函数在当发现规则的依赖有更新，或者是对应目标的命令行参数发生改变时
 #($(strip $(any-prereq) $(arg-check)) 语句结果不为空)，执行后面的语句。
 #set -e 表示如果命令执行有错那么命令停止执行并退出。
-#接着 $(echo-cmd) 用来打印出相关的编译命令，接着执行 $(cmd_$(1) 里的命令。
+#接着 $(echo-cmd) 用来打印出相关的编译命令，接着执行 $(cmd_$(1)) 里的命令。
 #最后 echo 'cmd_$@ := $(make-cmd)' > $(dot-target).cmd 将上面执行的命令写入一个叫 $(dot-target).cmd 的文件中，该文件为隐藏文件，在编译后的内核源码目录及其子目录下随处可见，比如在 init/ 下可以看到 .initramfs.o.cmd， .version.o.cmd 等等。
 # Execute the command and also postprocess generated .d dependencies file.
 if_changed_dep = $(if $(strip $(any-prereq) $(arg-check) ),                  \
@@ -106,4 +106,9 @@ if_changed_dep = $(if $(strip $(any-prereq) $(arg-check) ),                  \
 	rm -f $(depfile);                                                    \
 	mv -f $(dot-target).tmp $(dot-target).cmd)
 
-if_changed_rule = $(if_changed_dep)
+# Usage: $(call if_changed_rule,foo)
+# Will check if $(cmd_foo) or any of the prerequisites changed,
+# and if so will execute $(rule_foo).
+if_changed_rule = $(if $(strip $(any-prereq) $(arg-check) ),                 \
+	@set -e;                                                             \
+	$(rule_$(1)))

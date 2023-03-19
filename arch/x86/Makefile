@@ -21,6 +21,8 @@ else
     KBUILD_AFLAGS += -m64
     KBUILD_CFLAGS += -m64
 
+    KBUILD_CFLAGS += -mcmodel=kernel
+
 endif #ifeq ($(CONFIG_X86_32),y)
 
 KBUILD_LDFLAGS := -m elf_$(UTS_MACHINE)
@@ -31,10 +33,14 @@ KBUILD_LDFLAGS := -m elf_$(UTS_MACHINE)
 #禁止sse，sse2和mmx指令集：-mno-sse -mno-sse2 -mno-mmx
 REALMODE_CFLAGS	:= -m32 -g -Os -march=i386 -mregparm=3 \
                     -ffreestanding -nostdlib -mno-sse -mno-sse2 -mno-mmx
-#第三行需要尝试
+
 export REALMODE_CFLAGS
 
+head-y := arch/x86/kernel/head_$(BITS).o
+
 boot := arch/x86/boot
+
+core-y += arch/x86/
 
 # Default kernel to build
 all: bzImage

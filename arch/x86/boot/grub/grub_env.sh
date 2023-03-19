@@ -1,8 +1,9 @@
 #!/bin/sh
 img_path=${1}
-set_up_path=${2}
-kernel_path=${3}
-img_mount_path=${4}
+set_up_path0=${2}
+set_up_path1=${3}
+kernel_path=${4}
+img_mount_path=${5}
 
 format_fs(){
 	if [ ! -d "${img_mount_path}" ]; 
@@ -32,7 +33,8 @@ format_fs(){
 }
 
 cp_kernel(){
-	sudo cp "${set_up_path}" "${img_mount_path}/boot/setup"
+	sudo cp "${set_up_path0}" "${img_mount_path}/boot/setup0"
+	sudo cp "${set_up_path1}" "${img_mount_path}/boot/setup1"
 	sudo cp "${kernel_path}" "${img_mount_path}/boot/kernel"
 	if [ -e "${img_mount_path}/boot/grub/grub.cfg" ]
 	then

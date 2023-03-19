@@ -30,13 +30,19 @@ KBUILD_AFLAGS += $(subdir-asflags-y)
 KBUILD_CFLAGS += $(subdir-ccflags-y)
 
 # Subdirectories we need to descend into
-subdir-ym := $(sort $(subdir-y) $(subdir-m) \
-			$(patsubst %/,%, $(filter %/, $(obj-y) $(obj-m))))
+__subdir-y	:= $(patsubst %/,%,$(filter %/, $(obj-y)))
+subdir-y	+= $(__subdir-y)
+__subdir-m	:= $(patsubst %/,%,$(filter %/, $(obj-m)))
+subdir-m	+= $(__subdir-m)
 
 obj-y		:= $(patsubst %/, %/built-in.o, $(obj-y))
 
 # 所有模块的%/结尾的(目录)都直接删除，剩下的都是直接编译的目标，而目录是放到subdir-m中统一处理的
 obj-m		:= $(filter-out %/, $(obj-m))
+
+# Subdirectories we need to descend into
+
+subdir-ym	:= $(sort $(subdir-y) $(subdir-m))
 
 #复合目标
 # If $(foo-objs), $(foo-y), $(foo-m), or $(foo-) exists, foo.o is a composite object
@@ -66,12 +72,18 @@ hostprogs += $(hostprogs-always-y) $(hostprogs-always-m)
 always-y += $(hostprogs-always-y) $(hostprogs-always-m)
 
 
+# $(subdir-obj-y) is the list of objects in $(obj-y) which uses dir/ to
+# tell kbuild to descend
+subdir-obj-y := $(filter %/built-in.o, $(obj-y))
+
+extra-y		:= $(addprefix $(obj)/,$(extra-y))
 always-y	:= $(addprefix $(obj)/,$(always-y))
 ## targets也完全来自于用户输入，其主要有两个作用：
 ## 1是对if_changed系列函数做支持，如果一个目标想通过if_changed来判断只有更改时才重新编译，那么就必须要加入到targets中
 ## 2是对clean的支持，clean的时候会清除targets中的所有相关文件
 targets		:= $(addprefix $(obj)/,$(targets))
 obj-y		:= $(addprefix $(obj)/,$(obj-y))
+subdir-obj-y	:= $(addprefix $(obj)/,$(subdir-obj-y))
 real-obj-y	:= $(addprefix $(obj)/,$(real-obj-y))
 multi-used-y	:= $(addprefix $(obj)/,$(multi-used-y))
 subdir-ym	:= $(addprefix $(obj)/,$(subdir-ym))

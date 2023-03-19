@@ -41,6 +41,7 @@ SUBARCH := $(shell uname -m | sed -e s/i.86/i386/ -e s/sun4u/sparc64/ \
 
 #当外部不指定编译系统架构时，使用主机的架构
 ARCH		?= $(SUBARCH)
+UTS_MACHINE 	:= $(ARCH)
 
 ifeq ($(ARCH),i386)
         SRCARCH := x86
@@ -66,6 +67,14 @@ endif
 
 HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 -fomit-frame-pointer
 HOSTCXXFLAGS = -O2
+
+# Decide whether to build built-in, modular, or both.
+# Normally, just do built-in.
+
+KBUILD_MODULES :=
+KBUILD_BUILTIN := 1
+
+export KBUILD_MODULES KBUILD_BUILTIN
 
 #然后系统会检查KBUILD_VERBOSE的值，以此来决定quiet和Q的值。
 #符号@控制命令的输出，如果它被放在一个命令之前，
@@ -141,7 +150,8 @@ KBUILD_CFLAGS   := -Wall -Wundef -Werror=strict-prototypes -Wno-trigraphs \
 KBUILD_LDFLAGS :=
 
 export ARCH SRCARCH CONFIG_SHELL HOSTCC KBUILD_HOSTCFLAGS HOSTCFLAGS AS LD CC
-export CPP OBJCOPY
+export CPP OBJCOPY 
+export UTS_MACHINE
 export HOSTCXX HOSTCXXFLAGS 
 
 export KBUILD_CPPFLAGS NOSTDINC_FLAGS XIANINCLUDE LDFLAGS KBUILD_LDFLAGS
@@ -212,13 +222,13 @@ else
     # 到这里当前的编译目标一定不是xxx_config(否则前面的流程就结束了)
 
 PHONY += scripts
-#vmxian-dirs也依赖于第二个目标scripts，它会编译接下来的几个程序：filealias，mk_elfconfig，modpost等等。
+#xian-dirs也依赖于第二个目标scripts，它会编译接下来的几个程序：filealias，mk_elfconfig，modpost等等。
 scripts: scripts_basic include/config/auto.conf 
 	$(Q)$(MAKE) $(build)=$(@)
 
 # Objects we will link into xian / subdirs we need to visit
 # 这里是需要连接到xian的目录的变量
-#init-y		:= init/
+init-y		:= init/
 
 ## 此时如果需要使用.config的话，则直接包含auto.conf,将内核的CONFIG配置引入到Makefile的配置中
 # include了auto.conf后，内核的配置项变为了Makefile中的变量，
@@ -257,38 +267,56 @@ NOSTDINC_FLAGS += -nostdinc -isystem $(shell $(CC) -print-file-name=include)
 # set in the environment
 # Also any assignments in arch/$(ARCH)/Makefile take precedence over
 # this default value
-export KBUILD_IMAGE ?= vmxian
+export KBUILD_IMAGE ?= xian
 
-## 这里过滤掉所有目录字符串尾部的/,也就是说vmxian-dirs全是目录名，但没有 /结尾
+## 这里过滤掉所有目录字符串尾部的/,也就是说xian-dirs全是目录名，但没有 /结尾
 
-vmxian-dirs	:= $(patsubst %/,%,$(filter %/, $(init-y)))
+xian-dirs	:= $(patsubst %/,%,$(filter %/, $(init-y) $(core-y)))
 
 ## 将所有的目录%/都替换为 %/built-in.o
 init-y		:= $(patsubst %/, %/built-in.o, $(init-y))
+core-y		:= $(patsubst %/, %/built-in.o, $(core-y))
 
-vmxian-init := $(init-y)
+xian-init := $(head-y) $(init-y)
+xian-main := $(core-y)
+xian-lds  := arch/$(SRCARCH)/kernel/xian.lds
 
+# May be overridden by arch/$(ARCH)/Makefile
+# 链接内核主体
+quiet_cmd_xian__ ?= LD      $@
+      cmd_xian__ ?= $(LD) $(LDFLAGS) $(LDFLAGS_xian) -o $@ \
+      -T $(xian-lds) $(xian-init)                          \
+	  --start-group $(xian-main) --end-group                  \
+      $(filter-out $(xian-lds) $(xian-init) $(xian-main) FORCE ,$^)
 
-xian: $(vmxian-init)
+define rule_xian__
+	:
+	$(call cmd,xian__)
+	$(Q)echo 'cmd_$@ := $(cmd_xian__)' > $(@D)/.$(@F).cmd
+endef
+
+# xian image - including updated kernel symbols
+xian: $(xian-lds) $(xian-init) $(xian-main) FORCE
+	$(call if_changed_rule,xian__)
 
 #编译各个目录
-$(sort $(vmxian-init) ) : $(vmxian-dirs) 
+$(sort $(xian-init) $(xian-main) $(xian-lds)) : $(xian-dirs) ;
 
-PHONY += $(vmxian-dirs)
-#就像我们看到的，vmxian-dirs依赖于两部分：prepare和scripts。
+PHONY += $(xian-dirs)
+#就像我们看到的，xian-dirs依赖于两部分：prepare和scripts。
 ## 这里的make展开如 make build := -f $(srctree)/scripts/Makefile.build obj=init 
 ## 每一个子目录名都要执行一次此make
-$(vmxian-dirs): prepare
+$(xian-dirs): prepare
 	$(Q)$(MAKE) $(build)=$@
 
-PHONY += prepare
+PHONY += prepare archprepare prepare1
 
 prepare1: include/config/auto.conf
 
 archprepare: prepare1 scripts_basic
 
 # All the preparing..
-prepare: prepare0
+prepare: archprepare
 
 ###
 # Cleaning is done on three levels.
@@ -303,6 +331,7 @@ prepare: prepare0
 #   三者是层层递进的，其依赖关系中也可看出这一点:
 # Directories & files removed with 'make clean'
 CLEAN_DIRS  += $(MODVERDIR)
+CLEAN_FILES +=	xian
 
 # Directories & files removed with 'make mrproper'
 MRPROPER_DIRS  += include/config usr/include include/generated

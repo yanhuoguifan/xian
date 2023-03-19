@@ -80,11 +80,11 @@ int detect_memory(void)
 /*只能在detect_memory与save_modules后调用*/
 void *malloc(unsigned long size) {
     void* ptr = NULL;
-    if (setup_memory_start == 0 || setup_memory_end == 0 || boot_params.initrd.module_start == 0) {
+    if (setup_memory_start == 0 || setup_memory_end == 0 || boot_params.setup1.module_start == 0) {
         return ptr;
     }
     if (setup_memory_start == 0x100000) {
-        setup_memory_start = boot_params.initrd.module_start + boot_params.initrd.module_len;
+        setup_memory_start = boot_params.setup1.module_start + boot_params.setup1.module_len;
     }
     if (setup_memory_start + size < setup_memory_end) {
         ptr = (void*)setup_memory_start;

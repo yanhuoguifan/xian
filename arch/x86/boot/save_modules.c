@@ -32,7 +32,7 @@ int save_modules(void)
         puts("can not find memory on module_start_memory\n");
         return -1;
     }
-    //启动xian必须将kernel和initrd以modules的方式加载
+    //启动xian必须将kernel和setup1以modules的方式加载
     if (!multiboot_tag_module[0]){
         puts("can not find kernel\n");
         return -1;
@@ -43,46 +43,46 @@ int save_modules(void)
     }
 
     if (!multiboot_tag_module[1]){
-        puts("can not find initrd\n");
+        puts("can not find setup1\n");
         return -1;
     } else {
-        boot_params.initrd.module_start = multiboot_tag_module[1]->mod_start;
-        boot_params.initrd.module_len = multiboot_tag_module[1]->mod_end - multiboot_tag_module[1]->mod_start + 1;
-        memcpy(boot_params.initrd.module_name,"initrd",strnlen("initrd",sizeof(boot_params.kernel.module_name)));
+        boot_params.setup1.module_start = multiboot_tag_module[1]->mod_start;
+        boot_params.setup1.module_len = multiboot_tag_module[1]->mod_end - multiboot_tag_module[1]->mod_start + 1;
+        memcpy(boot_params.setup1.module_name,"setup1",strnlen("setup1",sizeof(boot_params.setup1.module_name)));
     }
 
-    struct module *kernel_modlue, *initrd_modlue;
+    struct module *kernel_modlue, *setup1_modlue;
     kernel_modlue = &boot_params.kernel;
-    initrd_modlue = &boot_params.initrd;
+    setup1_modlue = &boot_params.setup1;
     
     //pad用于第二个模块的64位对齐
     int pad = (kernel_modlue->module_len + 63) / 64 * 64 - kernel_modlue->module_len;
 
-    //如果原本kernel侵占了initrd需要移动到的地方，则initrd需要拷贝两次
+    //如果原本kernel侵占了setup1需要移动到的地方，则setup1需要拷贝两次
     if(kernel_modlue->module_start > module_start_memory + pad && 
-        kernel_modlue->module_start < module_start_memory + kernel_modlue->module_len + pad + initrd_modlue->module_len) {
+        kernel_modlue->module_start < module_start_memory + kernel_modlue->module_len + pad + setup1_modlue->module_len) {
         if (desc[save_modules_memory].size + desc[save_modules_memory].addr - module_start_memory < 
-            kernel_modlue->module_start + kernel_modlue->module_len - module_start_memory + initrd_modlue->module_len) {
+            kernel_modlue->module_start + kernel_modlue->module_len - module_start_memory + setup1_modlue->module_len) {
             printf("Unable to find enough memory from more than 1M, need %d byte, have %d byte\n",
-                kernel_modlue->module_start + kernel_modlue->module_len - module_start_memory + initrd_modlue->module_len,
+                kernel_modlue->module_start + kernel_modlue->module_len - module_start_memory + setup1_modlue->module_len,
                 desc[save_modules_memory].size + desc[save_modules_memory].addr - module_start_memory);
             return -1;
         }
-        save_module(initrd_modlue,kernel_modlue->module_start + kernel_modlue->module_len);
+        save_module(setup1_modlue,kernel_modlue->module_start + kernel_modlue->module_len);
     }
     else {
         if (desc[save_modules_memory].size + desc[save_modules_memory].addr - module_start_memory < 
-            kernel_modlue->module_len + pad + initrd_modlue->module_len) {
+            kernel_modlue->module_len + pad + setup1_modlue->module_len) {
             printf("Unable to find enough memory from more than 1M, need %d byte, have %d byte\n",
-                kernel_modlue->module_len + pad + initrd_modlue->module_len,
+                kernel_modlue->module_len + pad + setup1_modlue->module_len,
                 desc[save_modules_memory].size + desc[save_modules_memory].addr - module_start_memory);
             return -1;
         }
-        save_module(initrd_modlue,kernel_modlue->module_start + kernel_modlue->module_len + pad);
+        save_module(setup1_modlue,kernel_modlue->module_start + kernel_modlue->module_len + pad);
     }
 
     save_module(kernel_modlue, module_start_memory);
-    save_module(initrd_modlue,kernel_modlue->module_start + kernel_modlue->module_len + pad);
+    save_module(setup1_modlue,kernel_modlue->module_start + kernel_modlue->module_len + pad);
 
     return 0;
 }

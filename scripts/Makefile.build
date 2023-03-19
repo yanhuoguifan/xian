@@ -47,7 +47,6 @@ include $(kbuild-file)
 ## 包含Makefile.lib,其中会对前面预定义中各种变量进行处理，这些变量的赋值通常来自$(kbuild-file)
 include scripts/Makefile.lib
 
-
 # Do not include hostprogs rules unless needed.
 # $(sort ...) is used here to remove duplicated words and excessive spaces.
 
@@ -85,10 +84,11 @@ endif
 #    这本身是从Kbuild根Makefile(./Makefile)中export来的变量，代表当前是否要编译内核xian，
 #如果要编译内核xian，则需要构建:
 #    * $(builtin-target): 即$(obj)/built-in.o，代表当前目录的所有要集成到内核的目标文件的归档
-#（obj-y是built-in.a的依赖项，所以这里不用单独指定如obj-y）
+#（obj-y是built-in.o的依赖项，所以这里不用单独指定如obj-y）
 #    * $(lib-target): 即$(obj)/lib.a(若有)，代表当前目录所有要编译的作为库的目标文件的归档
 #    * $(extra-y):代表不合入vmlinux，但在编译xian中需要同时编译的目标
 #  2.always-y实质上是主机程序
+
 
 __build: $(if $(KBUILD_BUILTIN),$(builtin-target) $(lib-target) $(extra-y)) \
 	$(always-y) $(subdir-ym)
@@ -106,6 +106,14 @@ quiet_cmd_cc_o_c = CC $(quiet_modtag)  $@
 
 #C文件编译语句
 cmd_cc_o_c = $(CC) $(c_flags) -c -o $@ $<
+
+define rule_cc_o_c
+	$(call echo-cmd,cc_o_c) $(cmd_cc_o_c);				  \
+	scripts/basic/fixdep $(depfile) $@ '$(call make-cmd,cc_o_c)' >    \
+	                                              $(dot-target).tmp;  \
+	rm -f $(depfile);						  \
+	mv -f $(dot-target).tmp $(dot-target).cmd
+endef
 
 #单独的.c->.o文件编译命令
 $(obj)/%.o: $(src)/%.c FORCE
@@ -133,6 +141,13 @@ quiet_cmd_cpp_lds_S = LDS     $@
 
 $(obj)/%.lds: $(src)/%.lds.S FORCE
 	$(call if_changed_dep,cpp_lds_S)
+
+# Build the compiled-in targets
+# ---------------------------------------------------------------------------
+
+# To build objects in subdirs, we need to descend into the directories
+# 有这一条才可以递归编译目录
+$(sort $(subdir-obj-y)): $(subdir-ym) ;
 
 #
 # Rule to compile a set of .o files into one .o file
@@ -196,8 +211,9 @@ targets := $(wildcard $(sort $(targets)))
 # Descending
 # ---------------------------------------------------------------------------
 #编译子目录
+
 PHONY += $(subdir-ym)
-$(subdir-ym):
+$(subdir-ym): FORCE
 	$(Q)$(MAKE) $(build)=$@
 
 cmd_files := $(wildcard $(foreach f,$(targets),$(dir $(f)).$(notdir $(f)).cmd))

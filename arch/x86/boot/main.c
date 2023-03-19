@@ -8,7 +8,7 @@ static void copy_boot_params(void){
 
 void main(void){
 
-    void* kernel_entry;
+    void* setup1_entry;
 
     copy_boot_params();
     /* First, copy the boot header into the "zeropage" */
@@ -26,17 +26,17 @@ void main(void){
         puts("detect_memory fail");
         return;
     }
-    /*save modules,include kernel and initrd*/
+    /*save modules,include kernel and setup1*/
     if (save_modules() != 0) {
         puts("save_modules fail");
         return;
     }
 
-    if (load_kernel(&kernel_entry) != 0) {
-        puts("load_kernel fail");
+    if (load_setup1(&setup1_entry) != 0) {
+        puts("load_setup1 fail");
         return;
     }
 
-    printf("jump to %d to kernel", kernel_entry);
-    jump_kernel(kernel_entry, &boot_params);
+    printf("jump to %d to setup1", setup1_entry);
+    jump_setup1(setup1_entry, &boot_params);
 }
