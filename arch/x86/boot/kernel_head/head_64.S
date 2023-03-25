@@ -135,6 +135,11 @@ ENTRY(startup_64)
 	//lldt加载局部描述符表，这里相当于不使用局部描述符表
 	lldt	%ax
 
+// run the kernel from LOAD_PHYSICAL_ADDR
+
+/* Start with the delta to where the kernel will run at. */
+	movq	$LOAD_PHYSICAL_ADDR, %rbp
+
 	/* Zero EFLAGS */
 	//1.可以清除之前的标志位
 	//2.禁止中断（IF位）
@@ -165,9 +170,36 @@ text_head:
 	shrq	$3, %rcx
 	rep	stosq
 
+//调整GOT表的值，使FPIC编译选项有效，实际上这段代码暂时用不上，rbx置0
+	movq    $0, %rbx
+/*
+ * Adjust our own GOT
+ */
+	leaq	_got(%rip), %rdx
+	leaq	_egot(%rip), %rcx
 1:
-	hlt
-	jmp     1b
+	cmpq	%rcx, %rdx
+	jae	2f
+	addq	%rbx, (%rdx)
+	addq	$8, %rdx
+	jmp	1b
+2:
+
+/*
+ * Do the laod kernel, and jump to the new kernel..
+ */
+	pushq	%rsi			/* Save the real mode argument */
+	movq	%rsi, %rdi		/* real mode address */
+	leaq	boot_heap(%rip), %rsi	/* malloc area for load kernel */
+	movq	%rbp, %rdx  /* output target address */
+	call	load_kernel
+	popq	%rsi
+
+/*
+ * Jump to the decompressed kernel.
+ */
+	//跳转到rbp寄存器所存放的地址中
+	jmp	*%rbp
 
 
 	.data
@@ -189,6 +221,8 @@ gdt_end:
  */
 	.bss
 	.balign 4
+boot_heap:
+	.fill BOOT_HEAP_SIZE, 1, 0
 boot_stack:
 	.fill BOOT_STACK_SIZE, 1, 0
 boot_stack_end:

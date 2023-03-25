@@ -14,6 +14,8 @@
  * put it inside the section definition.
  */
 
+#include <asm-generic/xian.lds.h>
+
 #ifdef CONFIG_X86_32
 OUTPUT_ARCH(i386)
 #else
@@ -22,5 +24,12 @@ OUTPUT_ARCH(i386:x86-64)
 
 SECTIONS
 {
+    . = CONFIG_PHYSICAL_START;
 
+	/* Text and read-only data */
+	.text :  {
+		_text = .;
+        HEAD_TEXT
+		_etext = .;
+	} 
 }

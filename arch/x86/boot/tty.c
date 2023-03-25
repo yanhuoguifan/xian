@@ -162,6 +162,15 @@ void putchar(int ch)
     flush();
 }
 
+
+#ifndef _SETUP1
+void save_console(void)
+{
+    boot_params.console.cursor_y = cursor_y;
+    boot_params.console.cursor_x = cursor_x;
+}
+#endif //_SETUP1
+
 void __attribute__((section(".inittext"))) puts(const char *str)
 {
 	while (*str)

@@ -64,6 +64,7 @@ size_t strnlen(const char *s, size_t maxlen);
 /* tty.c */
 void puts(const char *);
 void putchar(int);
+void save_console(void);
 
 /* save_modules.c */
 int save_modules(void);

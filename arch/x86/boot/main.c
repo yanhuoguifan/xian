@@ -37,6 +37,8 @@ void main(void){
         return;
     }
 
+    save_console();
+
     printf("jump to %d to setup1", setup1_entry);
     jump_setup1(setup1_entry, &boot_params);
 }

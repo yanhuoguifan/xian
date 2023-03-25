@@ -25,11 +25,18 @@ SECTIONS
 		*(.text.*)
 		_etext = . ;
 	}
+	.inittext	: { *(.inittext) }
 	.rodata : {
 		_rodata = . ;
 		*(.rodata)	 /* read-only data */
 		*(.rodata.*)
 		_erodata = . ;
+	}
+	.got : {
+		_got = .;
+		KEEP(*(.got.plt))
+		KEEP(*(.got))
+		_egot = .;
 	}
 	.data :	{
 		_data = . ;
