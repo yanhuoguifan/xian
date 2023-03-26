@@ -14,11 +14,6 @@
  * put it inside the section definition.
  */
 
-#ifdef CONFIG_X86_32
-#define LOAD_OFFSET __PAGE_OFFSET
-#else
-#define LOAD_OFFSET __START_KERNEL_map
-#endif
 
 #include <asm-generic/xian.lds.h>
 #include <asm/page_types.h>
@@ -31,16 +26,10 @@ OUTPUT_ARCH(i386:x86-64)
 
 SECTIONS
 {
-#ifdef CONFIG_X86_32
-        . = LOAD_OFFSET + LOAD_PHYSICAL_ADDR;
-        phys_startup_32 = startup_32 - LOAD_OFFSET;
-#else
-        . = __START_KERNEL;
-        phys_startup_64 = startup_64 - LOAD_OFFSET;
-#endif
+    . = CONFIG_PHYSICAL_START;
 
 	/* Text and read-only data */
-	.text :  AT(ADDR(.text) - LOAD_OFFSET) {
+	.text : {
 		_text = .;
         HEAD_TEXT
 #ifdef CONFIG_X86_32

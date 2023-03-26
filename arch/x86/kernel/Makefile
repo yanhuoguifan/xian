@@ -3,7 +3,7 @@
 #
 
 
-extra-y                := head_$(BITS).o xian.lds
+extra-y                := head_$(BITS).o xian.lds xian_head_debug.lds
 
 CPPFLAGS_xian.lds += -U$(UTS_MACHINE)
 

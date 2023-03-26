@@ -256,7 +256,7 @@ else
     include/config/auto.conf: ;
 endif # $(dot-config)
 
-all: xian
+all: xian xian_head_debug
 
 KBUILD_CFLAGS	+= -O2
 
@@ -284,9 +284,10 @@ xian-dirs	:= $(patsubst %/,%,$(filter %/, $(init-y) $(core-y)))
 init-y		:= $(patsubst %/, %/built-in.o, $(init-y))
 core-y		:= $(patsubst %/, %/built-in.o, $(core-y))
 
-xian-init := $(head-y) $(init-y)
-xian-main := $(core-y)
-xian-lds  := arch/$(SRCARCH)/kernel/xian.lds
+xian-init 			:= $(head-y) $(init-y)
+xian-main 			:= $(core-y)
+xian-lds  			:= arch/$(SRCARCH)/kernel/xian.lds
+xian-head-debug-lds := arch/$(SRCARCH)/kernel/xian_head_debug.lds
 
 # May be overridden by arch/$(ARCH)/Makefile
 # 链接内核主体
@@ -302,9 +303,23 @@ define rule_xian__
 	$(Q)echo 'cmd_$@ := $(cmd_xian__)' > $(@D)/.$(@F).cmd
 endef
 
+# 由于kerenl/head_$(BITS).o还未进入虚拟地址，链接用以debug
+quiet_cmd_xian_head_debug__ ?= LD      $@
+      cmd_xian_head_debug__ ?= $(LD) $(LDFLAGS) $(LDFLAGS_xian) -o $@ \
+      -T $(xian-head-debug-lds) $(head-y)                         \
+
+define rule_xian_head_debug__
+	:
+	$(call cmd,xian_head_debug__)
+	$(Q)echo 'cmd_$@ := $(cmd_xian_head_debug__)' > $(@D)/.$(@F).cmd
+endef
+
 # xian image - including updated kernel symbols
 xian: $(xian-lds) $(xian-init) $(xian-main) FORCE
 	$(call if_changed_rule,xian__)
+
+xian_head_debug: $(xian-head-debug-lds) $(head-y) FORCE
+	$(call if_changed_rule,xian_head_debug__)
 
 #编译各个目录
 $(sort $(xian-init) $(xian-main) $(xian-lds)) : $(xian-dirs) ;
@@ -338,7 +353,7 @@ prepare: archprepare
 #   三者是层层递进的，其依赖关系中也可看出这一点:
 # Directories & files removed with 'make clean'
 CLEAN_DIRS  += $(MODVERDIR)
-CLEAN_FILES +=	xian
+CLEAN_FILES +=	xian xian_head_debug
 
 # Directories & files removed with 'make mrproper'
 MRPROPER_DIRS  += include/config usr/include include/generated

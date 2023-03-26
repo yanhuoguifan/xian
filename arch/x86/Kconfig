@@ -31,6 +31,37 @@ config X86_64
 	select NEED_DMA_MAP_STATE
 	select SWIOTLB
 
+config PAGE_OFFSET
+	hex
+	default 0xB0000000 if VMSPLIT_3G_OPT
+	default 0x80000000 if VMSPLIT_2G
+	default 0x78000000 if VMSPLIT_2G_OPT
+	default 0x40000000 if VMSPLIT_1G
+	default 0xC0000000
+	depends on X86_32
+
+config PHYSICAL_ALIGN
+	hex "Alignment value to which kernel should be aligned" if X86_32
+	default "0x1000000"
+	range 0x2000 0x1000000
+	help
+	  This value puts the alignment restrictions on physical address
+	  where kernel is loaded and run from. Kernel is compiled for an
+	  address which meets above alignment restriction.
+
+	  If bootloader loads the kernel at a non-aligned address and
+	  CONFIG_RELOCATABLE is set, kernel will move itself to nearest
+	  address aligned to above value and run from there.
+
+	  If bootloader loads the kernel at a non-aligned address and
+	  CONFIG_RELOCATABLE is not set, kernel will ignore the run time
+	  load address and decompress itself to the address it has been
+	  compiled for and run from there. The address for which kernel is
+	  compiled already meets above alignment restrictions. Hence the
+	  end result is that kernel runs from a physical address meeting
+	  above alignment restrictions.
+
+	  Don't change this unless you know what you are doing.
 
 config SETUP1_START
 	hex "Physical address where the kernel is loaded" if (EXPERT || CRASH_DUMP)

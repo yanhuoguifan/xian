@@ -4,7 +4,9 @@
 #ifdef __KERNEL__
 
 /* Physical address where kernel should be loaded. */
-#define LOAD_PHYSICAL_ADDR (CONFIG_PHYSICAL_START)
+#define LOAD_PHYSICAL_ADDR ((CONFIG_PHYSICAL_START \
+				+ (CONFIG_PHYSICAL_ALIGN - 1)) \
+				& ~(CONFIG_PHYSICAL_ALIGN - 1))
 
 #define BOOT_HEAP_SIZE	0x8000
 

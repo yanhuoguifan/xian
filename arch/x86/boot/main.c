@@ -12,7 +12,7 @@ void main(void){
 
     copy_boot_params();
     /* First, copy the boot header into the "zeropage" */
-    if (boot_params.hdr.multiboot_magic != MULTIBOOT2_BOOTLOADER_MAGIC) {
+    if (boot_params.hdr.multiboot_magic != MULTIBOOT_BOOTLOADER_MAGIC) {
         printf ("Invalid magic number: 0x\n", (unsigned) boot_params.hdr.multiboot_magic);
         return;
     }
