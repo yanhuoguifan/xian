@@ -48,12 +48,12 @@ static int detect_memory_multiboot(void)
 
                     count++;
 
-                    if (mmap->addr <= 0x100000 && mmap->len + mmap->addr >= 0x200000 && mmap->type == E820_RAM) {
-                        setup_memory_start = 0x100000;
-                        setup_memory_end = 0x200000;
+                    if (mmap->addr <= module_start_memory && mmap->len + mmap->addr >= CONFIG_SETUP1_START && mmap->type == E820_RAM) {
+                        setup_memory_start = module_start_memory;
+                        setup_memory_end = CONFIG_SETUP1_START;
                     }
                 }
-    if (setup_memory_start != 0x100000 || setup_memory_end != 0x200000) {
+    if (setup_memory_start != module_start_memory || setup_memory_end != CONFIG_SETUP1_START) {
         puts("can not find memory for setup_memory");
         return 0;
     }
@@ -83,7 +83,7 @@ void *malloc(unsigned long size) {
     if (setup_memory_start == 0 || setup_memory_end == 0 || boot_params.setup1.module_start == 0) {
         return ptr;
     }
-    if (setup_memory_start == 0x100000) {
+    if (setup_memory_start == module_start_memory) {
         setup_memory_start = boot_params.setup1.module_start + boot_params.setup1.module_len;
     }
     if (setup_memory_start + size < setup_memory_end) {

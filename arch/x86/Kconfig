@@ -34,7 +34,7 @@ config X86_64
 
 config SETUP1_START
 	hex "Physical address where the kernel is loaded" if (EXPERT || CRASH_DUMP)
-	default "0x200000"
+	default "0xa00000"
 	
 
 config PHYSICAL_START
@@ -96,3 +96,5 @@ config XIAN_MAGIC
 	  This is the correct value for verifying the header file
 
 source "init/Kconfig"
+
+source "arch/x86/Kconfig.debug"

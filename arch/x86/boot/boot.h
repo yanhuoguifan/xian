@@ -5,6 +5,8 @@
 
 #include <asm/multiboot.h>
 
+#define module_start_memory 0x100000
+
 #ifndef __ASSEMBLY__
 
 #include <stdarg.h>

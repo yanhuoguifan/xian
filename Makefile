@@ -258,7 +258,14 @@ endif # $(dot-config)
 
 all: xian
 
+KBUILD_CFLAGS	+= -O2
+
 include $(srctree)/arch/$(SRCARCH)/Makefile
+
+ifdef CONFIG_DEBUG_INFO
+KBUILD_CFLAGS	+= -g
+KBUILD_AFLAGS	+= -gdwarf-5
+endif
 
 NOSTDINC_FLAGS += -nostdinc -isystem $(shell $(CC) -print-file-name=include)
 

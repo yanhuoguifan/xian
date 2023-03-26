@@ -3,7 +3,6 @@
  */
 
 #include "boot.h"
-#define module_start_memory 0x100000
 
 void save_module(struct module *module, u32 dst)
 {
