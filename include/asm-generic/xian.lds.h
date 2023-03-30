@@ -53,6 +53,10 @@
 #ifndef _XIAN_LDS_H
 #define _XIAN_LDS_H
 
+/* .data section */
+#define DATA_DATA							\
+	*(.data)							
+
 #define HEAD_TEXT  *(.head.text)
 
 #endif /* _XIAN_LDS_H */

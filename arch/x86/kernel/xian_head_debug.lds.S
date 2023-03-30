@@ -41,4 +41,27 @@ SECTIONS
 		/* End of text section */
 		_etext = .;
 	} 
+
+    /* Data */
+	.data : {
+		/* Start of data section */
+		_sdata = .;
+
+		DATA_DATA
+		
+		/* End of data section */
+		_edata = .;
+	}
+
+    /* BSS */
+	. = ALIGN(PAGE_SIZE);
+	.bss : {
+		__bss_start = .;
+		*(.bss..page_aligned)
+		*(.bss)
+		. = ALIGN(PAGE_SIZE);
+		__bss_stop = .;
+	}
+
+    _end = .;
 }

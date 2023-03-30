@@ -170,20 +170,6 @@ text_head:
 	shrq	$3, %rcx
 	rep	stosq
 
-//调整GOT表的值，使FPIC编译选项有效，实际上这段代码暂时用不上，rbx置0
-	movq    $0, %rbx
-/*
- * Adjust our own GOT
- */
-	leaq	_got(%rip), %rdx
-	leaq	_egot(%rip), %rcx
-1:
-	cmpq	%rcx, %rdx
-	jae	2f
-	addq	%rbx, (%rdx)
-	addq	$8, %rdx
-	jmp	1b
-2:
 
 /*
  * Do the laod kernel, and jump to the new kernel..

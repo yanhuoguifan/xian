@@ -13,3 +13,4 @@ set pagination off
 set_architecture
 add_symbol
 target remote localhost:1234
+set pagination on
