@@ -63,7 +63,7 @@ DUBUG_XIAN := $(boot)/debug
 bzImage: xian
 	$(Q)$(MAKE) $(build)=$(boot) $(KBUILD_IMAGE)
 
-install: bzImage xian_head_debug
+install: bzImage 
 	$(Q)$(MAKE) $(build)=$(boot) $(INSTALL_IMAGE)
 
 clean: clean_install

@@ -26,9 +26,51 @@ startup_64:
 	 * %esi holds a physical pointer to real_mode_data.
 	 */
 
-1:
+	/* Compute the delta between the address I am compiled to run at and the
+	 * address I am actually running at.
+	 */
+	 //计算_test的rip相对地址，即当前rip+(虚拟_text-虚拟ip)
+	 //由于_test在程序起始，所以实际是真实的起始物理地址
+	leaq	_text(%rip), %rbp
+	//使用实际物理起始地址当做计算2M对齐的值
+	movq    %rbp, %rax
+	 //计算虚拟_text-虚拟起始地址，由于_test在程序起始，所以实际是期望的起始物理地址
+	 //这个值应该和上面那个值一样，除非内核加载的时候被重定向，偏差值保存在rbp
+	subq	$_text - __START_KERNEL_map, %rbp
+	/* Fixup phys_base */
+	//保存偏差值
+	movq	%rbp, phys_base(%rip)
+
+	//内核使用2M大页,x86对齐2M可以提升内存访问效率,减少TLB（Translation Lookaside Buffer）缓存的失效率
+	/* Is the address not 2M aligned? */
+	andl	$~PMD_PAGE_MASK, %eax
+	testl	%eax, %eax
+	jnz	bad_address
+
+	/* Is the address too large? */
+	//不能超过512G
+	leaq	_text(%rip), %rdx
+	movq	$PGDIR_SIZE, %rax
+	cmpq	%rax, %rdx
+	jae	bad_address
+
+	//将4 level pagetables的实际物理地址加载到cr3中
+	/* Setup early boot stage 4 level pagetables. */
+	movq	$(init_level4_pgt - __START_KERNEL_map), %rax
+	addq	phys_base(%rip), %rax
+	movq	%rax, %cr3
+
+	/* Ensure I am executing from virtual addresses */
+	movq	$virtual_addresses, %rax
+	jmp	*%rax
+	
+	//从这里进入0xffffffff80000000以上的高位虚拟地址
+	.globl virtual_addresses
+virtual_addresses:
+
+bad_address:
 	hlt
-	jmp     1b
+	jmp     bad_address
 
 
 #define NEXT_PAGE(name) \
@@ -115,4 +157,8 @@ NEXT_PAGE(level2_kernel_pgt)
 	 //KERNEL_IMAGE_SIZE是512m
 	PMDS(0, __PAGE_KERNEL_LARGE_EXEC,
 		KERNEL_IMAGE_SIZE/PMD_SIZE)
+
+ENTRY(phys_base)
+	/* This must match the first entry in level2_kernel_pgt */
+	.quad   0x0000000000000000
 

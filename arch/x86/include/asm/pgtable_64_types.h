@@ -31,5 +31,7 @@ typedef unsigned long	pteval_t;
 
 //2M
 #define PMD_SIZE	(_AC(1, UL) << PMD_SHIFT)
+//256G
+#define PGDIR_SIZE	(_AC(1, UL) << PGDIR_SHIFT)
 
 #endif /* _ASM_X86_PGTABLE_64_DEFS_H */

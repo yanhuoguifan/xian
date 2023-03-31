@@ -35,6 +35,7 @@ SECTIONS
         . = LOAD_OFFSET + LOAD_PHYSICAL_ADDR;
         phys_startup_32 = startup_32 - LOAD_OFFSET;
 #else
+        //这里起始是配置的物理起始地址+2M对齐+内核的虚拟映射
         . = __START_KERNEL;
         phys_startup_64 = startup_64 - LOAD_OFFSET;
 #endif
@@ -53,6 +54,7 @@ SECTIONS
 		_etext = .;
 	} 
 
+	. = ALIGN(16);
 	/* Data */
 	.data : AT(ADDR(.data) - LOAD_OFFSET) {
 		/* Start of data section */
@@ -63,7 +65,7 @@ SECTIONS
 		/* End of data section */
 		_edata = .;
 	}
-
+	
 	/* BSS */
 	. = ALIGN(PAGE_SIZE);
 	.bss : AT(ADDR(.bss) - LOAD_OFFSET) {
