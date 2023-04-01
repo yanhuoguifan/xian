@@ -1,4 +1,5 @@
 import gdb
+import os
 
 class AutoDeleteSymbol(gdb.Breakpoint):
     def __init__(self, spec):
@@ -14,4 +15,15 @@ class AutoDeleteSymbol(gdb.Breakpoint):
             self.symbols_deleted = True
         return False
 
-AutoDeleteSymbol('arch/x86/kernel/head_64.S:virtual_addresses')
+def add_xian_init_symbol():
+    xian_program_head = os.popen("objdump -h xian").read()
+    target_segments = [".bss", ".data", ".text"]
+    target_segments_address = "add-symbol-file ./arch/x86/boot/xian.bin"
+    for line in xian_program_head.splitlines():
+        for target_segment in target_segments:
+            if target_segment in line:
+                target_segment_address = line.split()[4]
+                target_segments_address += " -s " + target_segment +  " 0x" + target_segment_address
+    gdb.execute(target_segments_address)
+
+

@@ -65,7 +65,6 @@ startup_64:
 	jmp	*%rax
 	
 	//从这里进入0xffffffff80000000以上的高位虚拟地址
-	.globl virtual_addresses
 virtual_addresses:
 
 bad_address:
