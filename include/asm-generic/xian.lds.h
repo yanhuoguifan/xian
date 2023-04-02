@@ -57,6 +57,10 @@
 #define DATA_DATA							\
 	*(.data)							
 
+#define INIT_TASK_DATA(align)						\
+	. = ALIGN(align);						\
+	*(.data..init_task)
+
 #define HEAD_TEXT  *(.head.text)
 
 #endif /* _XIAN_LDS_H */

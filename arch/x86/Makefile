@@ -40,6 +40,7 @@ REALMODE_CFLAGS	:= -m32 -g -Os -march=i386 -mregparm=3 \
 export REALMODE_CFLAGS
 
 head-y := arch/x86/kernel/head_$(BITS).o
+head-y += arch/x86/kernel/init_task.o
 
 boot := arch/x86/boot
 

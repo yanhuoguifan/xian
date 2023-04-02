@@ -7,7 +7,10 @@
 #define MSR_EFER		0xc0000080 /* extended feature register */
 
 /* EFER bits: */
+/* EFER bits: */
+#define _EFER_SCE		0  /* SYSCALL/SYSRET */
 #define _EFER_LME		8  /* Long mode enable */
+#define _EFER_NX		11 /* No execute enable */
 
 /* K7 MSRs */
 #define MSR_K7_HWCR			0xc0010015

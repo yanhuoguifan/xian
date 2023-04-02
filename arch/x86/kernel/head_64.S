@@ -1,6 +1,7 @@
 #include <xian/linkage.h>
 #include <asm/pgtable.h>
 #include <xian/init.h>
+#include <asm/msr.h>
 #include <asm/processor-flags.h>
 
 //取地址第三级索引
@@ -144,10 +145,52 @@ ENTRY(secondary_startup_64)
 	//从这里进入0xffffffff80000000以上的高位虚拟地址
 virtual_addresses:
 
+	/* Check if nx is implemented */
+	movl	$0x80000001, %eax
+	cpuid
+	movl	%edx,%edi
+
+	/* Setup EFER (Extended Feature Enable Register) */
+	//读取MSR_EFER寄存器到edx:eax中
+	movl	$MSR_EFER, %ecx
+	rdmsr
+	//设置 SCE 位将会启用 SYSCALL 以及 SYSRET 指令
+	btsl	$_EFER_SCE, %eax	/* Enable System Call */
+	//cpuid结果保存在edi中，测试是否支持nx(no-execute),nx用于分离内存区域以供处理器指令存储或数据存储使用
+	btl	$20,%edi		/* No Execute supported? */
+	jnc     1f
+	btsl	$_EFER_NX, %eax
+1:	wrmsr				/* Make changes effective */
+
+	/* Setup cr0 */
+	//X86_CR0_PE - 系统处于保护模式;
+	//X86_CR0_MP - 与CR0的TS标志位一同控制 WAIT/FWAIT 指令的功能；
+	//X86_CR0_ET - 386允许指定外部数学协处理器为80287或80387;
+	//X86_CR0_NE - 如果置位，则启用内置的x87浮点错误报告，否则启用PC风格的x87错误检测；
+	//X86_CR0_WP - 如果置位，则CPU在特权等级为0时无法写入只读内存页;
+	//X86_CR0_AM - 当AM位置位、EFLGS中的AC位置位、特权等级为3时，进行对齐检查;
+	//X86_CR0_PG - 启用分页.
+#define CR0_STATE	(X86_CR0_PE | X86_CR0_MP | X86_CR0_ET | \
+			 X86_CR0_NE | X86_CR0_WP | X86_CR0_AM | \
+			 X86_CR0_PG)
+	movl	$CR0_STATE, %eax
+	/* Make changes effective */
+	movq	%rax, %cr0
+
+	/* Setup a boot time stack */
+	movq stack_start(%rip),%rsp
+
 bad_address:
 	hlt
 	jmp     bad_address
 
+//init进程的栈
+	ENTRY(stack_start)
+	//THREAD_SIZE是2页,引用了init_thread的栈
+	.quad  init_thread_union+THREAD_SIZE-8
+	.word  0
+	__FINITDATA
+	
 
 #define NEXT_PAGE(name) \
 	.balign	PAGE_SIZE; \
@@ -236,6 +279,9 @@ NEXT_PAGE(level2_kernel_pgt)
 
 NEXT_PAGE(level2_spare_pgt)
 	.fill   512, 8, 0
+
+	.data
+	.align 16
 
 ENTRY(phys_base)
 	/* This must match the first entry in level2_kernel_pgt */

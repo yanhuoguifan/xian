@@ -60,6 +60,9 @@ SECTIONS
 		/* Start of data section */
 		_sdata = .;
 
+		/* init_task */
+		INIT_TASK_DATA(THREAD_SIZE)
+
 		DATA_DATA
 
 		/* End of data section */

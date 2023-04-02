@@ -6,6 +6,11 @@
  * Basic CPU control in CR0
  */
 #define X86_CR0_PE	0x00000001 /* Protection Enable */
+#define X86_CR0_MP	0x00000002 /* Monitor Coprocessor */
+#define X86_CR0_ET	0x00000010 /* Extension Type */
+#define X86_CR0_NE	0x00000020 /* Numeric Error */
+#define X86_CR0_WP	0x00010000 /* Write Protect */
+#define X86_CR0_AM	0x00040000 /* Alignment Mask */
 #define X86_CR0_PG	0x80000000 /* Paging */
 
 /*

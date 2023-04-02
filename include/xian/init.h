@@ -42,4 +42,7 @@
 /* For assembly routines */
 #define __HEAD		.section	".head.text","ax"
 
+#define __FINITDATA	.previous
+
+
 #endif /* _XIAN_INIT_H */

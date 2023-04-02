@@ -1,6 +1,9 @@
 #ifndef _ASM_X86_PAGE_64_DEFS_H
 #define _ASM_X86_PAGE_64_DEFS_H
 
+#define THREAD_ORDER	1
+#define THREAD_SIZE  (PAGE_SIZE << THREAD_ORDER)
+
 /*
  * Set __PAGE_OFFSET to the most negative possible address +
  * PGDIR_SIZE*16 (pgd slot 272).  The gap is to allow a space for a
