@@ -12,5 +12,6 @@
  * Intel CPU features in CR4
  */
 #define X86_CR4_PAE	0x00000020 /* enable physical address extensions */
+#define X86_CR4_PGE	0x00000080 /* enable global pages */
 
 #endif /* _ASM_X86_PROCESSOR_FLAGS_H */

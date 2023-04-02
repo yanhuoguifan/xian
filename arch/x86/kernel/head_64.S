@@ -1,6 +1,7 @@
 #include <xian/linkage.h>
 #include <asm/pgtable.h>
 #include <xian/init.h>
+#include <asm/processor-flags.h>
 
 //取地址第三级索引
 #define pud_index(x)	(((x) >> PUD_SHIFT) & (PTRS_PER_PUD-1))
@@ -53,6 +54,82 @@ startup_64:
 	movq	$PGDIR_SIZE, %rax
 	cmpq	%rax, %rdx
 	jae	bad_address
+
+	/* Fixup the physical addresses in the page table
+	 * 这里到secondary_startup_64都是调整页表
+	 */
+	addq	%rbp, init_level4_pgt + 0(%rip)
+	addq	%rbp, init_level4_pgt + (L4_PAGE_OFFSET*8)(%rip)
+	addq	%rbp, init_level4_pgt + (L4_START_KERNEL*8)(%rip)
+
+	addq	%rbp, level3_ident_pgt + 0(%rip)
+
+	addq	%rbp, level3_kernel_pgt + (510*8)(%rip)
+	addq	%rbp, level3_kernel_pgt + (511*8)(%rip)
+
+	addq	%rbp, level2_fixmap_pgt + (506*8)(%rip)
+
+	/* Add an Identity mapping if I am above 1G */
+	//level2_ident_pgt将虚拟地址0-1G 1:1映射到物理地址,假如真实物理起始地址大于1G，
+	//将添加level3_ident_pgt到level2_spare_pgt的映射
+	leaq	_text(%rip), %rdi
+	//将2M以下的值置零
+	andq	$PMD_PAGE_MASK, %rdi
+
+	movq	%rdi, %rax
+	//右移39位，_text取1G以上的值
+	shrq	$PUD_SHIFT, %rax
+	//取0-8位的1
+	andq	$(PTRS_PER_PUD - 1), %rax
+	//_text在1G以上没有值，跳过添加ident映射
+	jz	ident_complete
+
+	leaq	(level2_spare_pgt - __START_KERNEL_map + _KERNPG_TABLE)(%rbp), %rdx
+	leaq	level3_ident_pgt(%rip), %rbx
+	//相对基址寻址，0(%rbx, %rax, 8)代表0+%rbx+%rax*8对应的地址的内存值
+	//这里是将level2_spare_pgt物理地址填入_text的物理地址在1G上对应level3_ident_pgt的项中
+	movq	%rdx, 0(%rbx, %rax, 8)
+
+	movq	%rdi, %rax
+	shrq	$PMD_SHIFT, %rax
+	andq	$(PTRS_PER_PMD - 1), %rax
+	//上面得到_text的物理地址在2M以上0-8位的值，即对应的2级目录的项索引
+	leaq	__PAGE_KERNEL_IDENT_LARGE_EXEC(%rdi), %rdx
+	leaq	level2_spare_pgt(%rip), %rbx
+	//填充_text的物理地址对应的level2_spare_pgt项，映射到_text对应的物理页，这里只映射了一个2M的大页
+	movq	%rdx, 0(%rbx, %rax, 8)
+ident_complete:
+
+	/*
+	 * Fixup the kernel text+data virtual addresses. 
+	 */
+
+	leaq	level2_kernel_pgt(%rip), %rdi
+	leaq	4096(%rdi), %r8
+
+	//这里linux原本会计算level2_kernel_pgt的页项是否可用，对我们来说都是可用的
+	//将内核重定向的偏差值加到level2_kernel_pgt的项中
+1:	addq	%rbp, 0(%rdi)
+	/* Go to the next page */
+	addq	$8, %rdi
+	cmp	%r8, %rdi
+	jne	1b
+
+	//这种直接指定标签，只会获取段内相对地址，跳到的还是物理地址
+	jmp secondary_startup_64
+ENTRY(secondary_startup_64)
+	/*
+	 * At this point the CPU runs in 64bit mode CS.L = 1 CS.D = 1,
+	 *
+	 * %esi holds a physical pointer to real_mode_data.
+	 *
+	 * We come here either from startup_64 (using physical addresses)
+	 */
+
+	/* Enable PAE mode and PGE */
+	//PGE是全局页表，它将相同的物理页框映射到所有进程的虚拟地址空间中的相同虚拟地址。
+	movl	$(X86_CR4_PAE | X86_CR4_PGE), %eax
+	movq	%rax, %cr4
 
 	//将4 level pagetables的实际物理地址加载到cr3中
 	/* Setup early boot stage 4 level pagetables. */
@@ -149,13 +226,16 @@ NEXT_PAGE(level2_kernel_pgt)
 	 *  If you want to increase this then increase MODULES_VADDR
 	 *  too.)
 	 */
-	 //这里相当于将从0开始KERNEL_IMAGE_SIZE/PMD_SIZE个2M物理页
+	 //这里相当于将从0开始(实际后面会修正添加偏差值)KERNEL_IMAGE_SIZE/PMD_SIZE个2M物理页
 	 //映射到0xffffffff80000000开始的虚拟地址
 	 //__PAGE_KERNEL_LARGE_EXEC : __PAGE_KERNEL_EXEC(_PAGE_PRESENT | _PAGE_RW | \
 	 //_PAGE_DIRTY | _PAGE_ACCESSED | _PAGE_GLOBAL) | _PAGE_PSE
 	 //KERNEL_IMAGE_SIZE是512m
 	PMDS(0, __PAGE_KERNEL_LARGE_EXEC,
 		KERNEL_IMAGE_SIZE/PMD_SIZE)
+
+NEXT_PAGE(level2_spare_pgt)
+	.fill   512, 8, 0
 
 ENTRY(phys_base)
 	/* This must match the first entry in level2_kernel_pgt */
