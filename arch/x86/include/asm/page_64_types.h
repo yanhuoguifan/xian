@@ -9,6 +9,7 @@
  * PGDIR_SIZE*16 (pgd slot 272).  The gap is to allow a space for a
  * hypervisor to fit.  Choosing 16 slots here is arbitrary, but it's
  * what Xen requires.
+ * 这里开始的1G虚拟地址映射到物理地址前1G
  */
 #define __PAGE_OFFSET           _AC(0xffff880000000000, UL)
 

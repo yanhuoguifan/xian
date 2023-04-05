@@ -194,10 +194,44 @@ virtual_addresses:
 	 */
 	lgdt	early_gdt_descr(%rip)
 
+	/* set up data segments */
+	xorl %eax,%eax
+	movl %eax,%ds
+	movl %eax,%ss
+	movl %eax,%es
+
+	/*
+	 * We don't really need to load %fs or %gs, but load them anyway
+	 * to kill any stale realmode selectors.  This allows execution
+	 * under VT hardware.
+	 */
+	movl %eax,%fs
+	movl %eax,%gs
+
+	/* esi is pointer to real mode structure with interesting info.
+	   pass it to C */
+	movl	%esi, %edi
+
+	/* Finally jump to run C code and to be on real kernel address
+	 * Since we are running on identity-mapped space we have to jump
+	 * to the full 64bit address, this is only possible as indirect
+	 * jump.  In addition we need to ensure %cs is set so we make this
+	 * a far return.
+	 */
+	movq	initial_code(%rip),%rax
+	pushq	$bad_address		# fake return address to stop unwinder
+	pushq	$__KERNEL_CS	# set correct cs
+	pushq	%rax		# target address in negative space
+	lretq
+
 bad_address:
 	hlt
 	jmp     bad_address
 
+	.align	8
+	ENTRY(initial_code)
+	.quad	x86_64_start_kernel
+	
 //init进程的栈
 	ENTRY(stack_start)
 	//THREAD_SIZE是2页,引用了init_thread的栈

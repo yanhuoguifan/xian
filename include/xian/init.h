@@ -1,6 +1,8 @@
 #ifndef _XIAN_INIT_H
 #define _XIAN_INIT_H
 
+#include <xian/compiler.h>
+
 /* These macros are used to mark some functions or 
  * initialized data (doesn't apply to uninitialized data)
  * as `initialization' functions. The kernel can take this
@@ -40,6 +42,9 @@
    discard it in modules) */
 
 /* For assembly routines */
+
+#define __init		__section(.init.text)
+
 #define __HEAD		.section	".head.text","ax"
 
 #define __FINITDATA	.previous

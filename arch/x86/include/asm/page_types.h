@@ -10,6 +10,8 @@
 #define PMD_PAGE_SIZE		(_AC(1, UL) << PMD_SHIFT)
 #define PMD_PAGE_MASK		(~(PMD_PAGE_SIZE-1))
 
+#define PAGE_OFFSET		((unsigned long)__PAGE_OFFSET)
+
 #ifdef CONFIG_X86_64
 #include <asm/page_64_types.h>
 #else

@@ -49,6 +49,8 @@ SECTIONS
 		*(.text..page_aligned)
 #endif
 		. = ALIGN(8);
+		_stext = .;
+		TEXT_TEXT
 		*(.gnu.warning)
 		/* End of text section */
 		_etext = .;

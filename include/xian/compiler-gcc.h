@@ -3,3 +3,5 @@
 #endif
 
 #define __aligned(x)			__attribute__((aligned(x)))
+
+#define __always_inline		inline __attribute__((always_inline))

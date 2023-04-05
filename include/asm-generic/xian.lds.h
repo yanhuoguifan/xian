@@ -53,6 +53,12 @@
 #ifndef _XIAN_LDS_H
 #define _XIAN_LDS_H
 
+/* .text section. Map to function alignment to avoid address changes
+ * during second ld run in second ld pass when generating System.map */
+#define TEXT_TEXT							\
+		*(.init.text)						\
+		*(.text)						\
+
 /* .data section */
 #define DATA_DATA							\
 	*(.data)							
