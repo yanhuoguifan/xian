@@ -9,10 +9,25 @@
 
 #define GDT_ENTRY_KERNEL_DS		(GDT_ENTRY_KERNEL_BASE+1)
 
+#define GDT_ENTRIES 32
+
 #else
 
+#define GDT_ENTRY_KERNEL32_CS 1
 #define GDT_ENTRY_KERNEL_CS 2
 #define GDT_ENTRY_KERNEL_DS 3
+
+/*
+ * we cannot use the same code segment descriptor for user and kernel
+ * -- not even in the long flat mode, because of different DPL /kkeil
+ * The segment offset needs to contain a RPL. Grr. -AK
+ * GDT layout to get 64bit syscall right (sysret hardcodes gdt offsets)
+ */
+#define GDT_ENTRY_DEFAULT_USER32_CS 4
+#define GDT_ENTRY_DEFAULT_USER_DS 5
+#define GDT_ENTRY_DEFAULT_USER_CS 6
+
+#define GDT_ENTRIES 16
 
 #endif
 

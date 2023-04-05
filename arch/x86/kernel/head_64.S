@@ -1,8 +1,10 @@
 #include <xian/linkage.h>
 #include <asm/pgtable.h>
 #include <xian/init.h>
+#include <asm/segment.h>
 #include <asm/msr.h>
 #include <asm/processor-flags.h>
+#include <asm/percpu.h>
 
 //取地址第三级索引
 #define pud_index(x)	(((x) >> PUD_SHIFT) & (PTRS_PER_PUD-1))
@@ -180,6 +182,18 @@ virtual_addresses:
 	/* Setup a boot time stack */
 	movq stack_start(%rip),%rsp
 
+	/* zero EFLAGS after setting rsp */
+	pushq $0
+	popfq
+	
+	/*
+	 * We must switch to a new descriptor in kernel space for the GDT
+	 * because soon the kernel won't have access anymore to the userspace
+	 * addresses where we're currently running on. We have to do that here
+	 * because in 32bit we couldn't load a 64bit linear address.
+	 */
+	lgdt	early_gdt_descr(%rip)
+
 bad_address:
 	hlt
 	jmp     bad_address
@@ -282,6 +296,19 @@ NEXT_PAGE(level2_spare_pgt)
 
 	.data
 	.align 16
+
+#undef PMDS
+#undef NEXT_PAGE
+
+	.data
+	.align 16
+	.globl early_gdt_descr
+	//有8项段描述符
+early_gdt_descr:
+	.word	GDT_ENTRIES*8-1
+	//指向gdt表的基地址
+early_gdt_descr_base:
+	.quad	INIT_PER_CPU_VAR(gdt_page)
 
 ENTRY(phys_base)
 	/* This must match the first entry in level2_kernel_pgt */
