@@ -229,6 +229,7 @@ scripts: scripts_basic include/config/auto.conf
 # Objects we will link into xian / subdirs we need to visit
 # 这里是需要连接到xian的目录的变量
 init-y		:= init/
+libs-y		:= lib/
 
 ## 此时如果需要使用.config的话，则直接包含auto.conf,将内核的CONFIG配置引入到Makefile的配置中
 # include了auto.conf后，内核的配置项变为了Makefile中的变量，
@@ -278,14 +279,18 @@ export KBUILD_IMAGE ?= xian
 
 ## 这里过滤掉所有目录字符串尾部的/,也就是说xian-dirs全是目录名，但没有 /结尾
 
-xian-dirs	:= $(patsubst %/,%,$(filter %/, $(init-y) $(core-y)))
+xian-dirs	:= $(patsubst %/,%,$(filter %/, $(init-y) $(core-y) \
+			$(libs-y)))
 
 ## 将所有的目录%/都替换为 %/built-in.o
 init-y		:= $(patsubst %/, %/built-in.o, $(init-y))
 core-y		:= $(patsubst %/, %/built-in.o, $(core-y))
+#libs-y1		:= $(patsubst %/, %/lib.a, $(libs-y))
+libs-y2		:= $(patsubst %/, %/built-in.o, $(libs-y))
+libs-y		:= $(libs-y1) $(libs-y2)
 
 xian-init 			:= $(head-y) $(init-y)
-xian-main 			:= $(core-y)
+xian-main 			:= $(core-y) $(libs-y)
 xian-lds  			:= arch/$(SRCARCH)/kernel/xian.lds
 
 # May be overridden by arch/$(ARCH)/Makefile

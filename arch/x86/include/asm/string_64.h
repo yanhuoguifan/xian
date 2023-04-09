@@ -32,6 +32,8 @@ static __always_inline void *__inline_memcpy(void *to, const void *from, size_t 
 
 #define memcpy(dst, src, len) __inline_memcpy((dst), (src), (len))
 
+void *memset(void *s, int c, size_t n);
+
 #endif /* __KERNEL__ */
 
 #endif /* _ASM_X86_STRING_64_H */
