@@ -5,10 +5,13 @@
  */
 
 #include <xian/init.h>
+#include <xian/kernel.h>
 #include <xian/string.h>
+#include <xian/start_kernel.h>
 
 #include <asm/setup.h>
 #include <asm/page.h>
+#include <asm/pgtable.h>
 #include <asm/sections.h>
 
 /* Don't add a printk in there. printk relies on the PDA which is not initialized 
@@ -26,6 +29,8 @@ static void __init copy_bootdata(char *real_mode_data)
 
 void __init x86_64_start_kernel(char * real_mode_data)
 {   
+    BUILD_BUG_ON((KERNEL_IMAGE_START & ~PMD_MASK) != 0);
+
     /* clear bss before set_intr_gate with early_idt_handler */
 	clear_bss();
 
@@ -36,4 +41,6 @@ void __init x86_64_start_kernel(char * real_mode_data)
 void __init x86_64_start_reservations(char *real_mode_data)
 {
     copy_bootdata(__va(real_mode_data));
+
+    start_kernel();
 }

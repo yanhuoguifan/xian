@@ -1,4 +1,5 @@
-static int kernel_init(void * unused)
+#include <xian/start_kernel.h>
+
+void __init start_kernel(void)
 {
-    return 0;
 }
