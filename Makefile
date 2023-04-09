@@ -277,6 +277,8 @@ NOSTDINC_FLAGS += -nostdinc -isystem $(shell $(CC) -print-file-name=include)
 # this default value
 export KBUILD_IMAGE ?= xian
 
+core-y		+=  mm/
+
 ## 这里过滤掉所有目录字符串尾部的/,也就是说xian-dirs全是目录名，但没有 /结尾
 
 xian-dirs	:= $(patsubst %/,%,$(filter %/, $(init-y) $(core-y) \

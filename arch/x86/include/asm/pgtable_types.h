@@ -40,4 +40,15 @@
 # include "pgtable_64_types.h"
 #endif
 
+#ifndef __ASSEMBLY__
+
+typedef struct { pgdval_t pgd; } pgd_t;
+
+static inline pgd_t native_make_pgd(pgdval_t val)
+{
+	return (pgd_t) { val };
+}
+
+#endif	/* !__ASSEMBLY__ */
+
 #endif /* _ASM_X86_PGTABLE_DEFS_H */

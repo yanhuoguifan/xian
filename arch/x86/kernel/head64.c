@@ -12,7 +12,16 @@
 #include <asm/setup.h>
 #include <asm/page.h>
 #include <asm/pgtable.h>
+#include <asm/tlbflush.h>
 #include <asm/sections.h>
+
+//清空四级页表第一项的恒等映射,即0-512G(往往只有前1G)虚拟空间
+static void __init zap_identity_mappings(void)
+{
+	pgd_t *pgd = pgd_offset_k(0UL);
+	pgd_clear(pgd);
+	__flush_tlb_all();
+}
 
 /* Don't add a printk in there. printk relies on the PDA which is not initialized 
    yet. */
@@ -33,6 +42,9 @@ void __init x86_64_start_kernel(char * real_mode_data)
 
     /* clear bss before set_intr_gate with early_idt_handler */
 	clear_bss();
+
+    /* Make NULL pointers segfault */
+	zap_identity_mappings();
 
     x86_64_start_reservations(real_mode_data);
     //这里不应该return，不过即使return也会命中bad_address

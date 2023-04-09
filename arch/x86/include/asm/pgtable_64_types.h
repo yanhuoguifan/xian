@@ -7,6 +7,7 @@
  * These are used to make use of C type-checking..
  */
 typedef unsigned long	pteval_t;
+typedef unsigned long	pgdval_t;
 
 #endif	/* !__ASSEMBLY__ */
 
