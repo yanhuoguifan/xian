@@ -8,6 +8,7 @@
 #include <xian/kernel.h>
 #include <xian/string.h>
 #include <xian/start_kernel.h>
+#include <xian/memblock.h>
 
 #include <asm/setup.h>
 #include <asm/page.h>
@@ -53,6 +54,8 @@ void __init x86_64_start_kernel(char * real_mode_data)
 void __init x86_64_start_reservations(char *real_mode_data)
 {
     copy_bootdata(__va(real_mode_data));
+
+    memblock_init();
 
     start_kernel();
 }

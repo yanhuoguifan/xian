@@ -61,7 +61,8 @@
 
 /* .data section */
 #define DATA_DATA							\
-	*(.data)							
+	*(.data)							\			
+	*(init.data)						\			
 
 #define INIT_TASK_DATA(align)						\
 	. = ALIGN(align);						\
